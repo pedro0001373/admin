@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt-br" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empório e Tabacaria JR | Catálogo Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+:root { --primary: #4118a0; --bg-dark: #0F172A; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-dark); color: #F1F5F9; -webkit-tap-highlight-color: transparent; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+.neon-border { box-shadow: 0 0 15px rgba(95, 36, 221, 0.3); border: 1px solid rgba(139, 92, 246, 0.5); }
+@keyframes pulse-status {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+.pulse-green { animation: pulse-status 2s infinite; }
+.modal-slide-up { animation: slideUp 0.3s ease-out forwards; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.category-pill.active { background: var(--primary); color: white; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); border-color: transparent; }
+    </style>
+</head>
+<body class="pb-24">
+
+    <header class="relative h-60 w-full flex items-end pb-6 px-6 overflow-hidden">
+        <img src="Design sem nome.jpg" class="absolute inset-0 w-full h-full object-cover opacity-40">
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0F172A] to-transparent"></div>
+        <div class="relative z-10 w-full">
+            <h1 class="text-3xl font-extrabold tracking-tighter italic uppercase mb-4 text-white">EMPÓRIO E TABACARIA JR</h1>
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md w-fit px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-bold uppercase">
+                    <span class="w-2 h-2 bg-green-500 rounded-full pulse-green"></span>
+                    <span>Bertioga e Região - Aberto</span>
+                </div>
+                <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md w-fit px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-bold uppercase text-purple-300">
+                    <i class="fa-solid fa-shopping-bag"></i>
+                    <span>Pedidos: <span id="total-pedidos-header">0</span></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+   <nav class="sticky top-0 z-40 glass py-4 mb-6">
+        <div class="px-6 mb-4">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input id="product-search" type="text" placeholder="Pesquisar produto..." oninput="handleSearchInput(this.value)" class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:border-purple-500 text-white placeholder:text-gray-400">
+            </div>
+        </div>
+        <div class="flex gap-3 overflow-x-auto px-6 no-scrollbar" id="category-list">
+            <button onclick="filterCategory('Todos', this)" class="category-pill active whitespace-nowrap px-5 py-2 rounded-xl border border-white/10 text-xs font-bold uppercase transition-all">Todos</button>
+        </div>
+    </nav>
+
+    <main class="px-6">
+        <div id="product-grid" class="grid grid-cols-2 gap-4"></div>
+    </main>
+
+    <!-- Modal Produto -->
+    <div id="product-modal" class="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm hidden p-4 flex items-end">
+        <div class="absolute inset-0" onclick="closeProductModal()"></div>
+        <div class="relative mt-auto max-h-[90vh] overflow-y-auto rounded-[2rem] glass p-6 modal-slide-up w-full">
+            <button onclick="closeProductModal()" class="absolute right-4 top-4 text-3xl leading-none text-white">&times;</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Barra do Carrinho -->
+    <div id="cart-bar" class="fixed bottom-6 left-6 right-6 z-40 hidden">
+        <button onclick="openCheckout()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 p-5 rounded-2xl flex justify-between items-center shadow-2xl neon-border transition-transform active:scale-95">
+            <div class="flex items-center gap-3">
+                <span id="cart-count" class="bg-white text-purple-600 px-2 py-0.5 rounded-md font-bold text-xs">0</span>
+                <span class="font-bold uppercase text-xs tracking-widest text-white">Minha Sacola</span>
+            </div>
+            <span id="cart-total" class="font-bold text-white">R$ 0,00</span>
+        </button>
+    </div>
+
+    <!-- Modal Checkout -->
+    <div id="checkout-modal" class="fixed inset-0 z-[70] glass hidden p-6 overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-black italic uppercase text-white">Fechar Pedido</h2>
+                <p class="text-sm text-purple-400 font-bold mt-1">Total de pedidos: <span id="total-pedidos-display">0</span></p>
+            </div>
+            <button onclick="closeCheckout()" class="text-3xl text-white">&times;</button>
+        </div>
+
+        <div id="checkout-items" class="space-y-4 mb-8"></div>
+
+        <div class="space-y-4">
+            <input type="text" id="user-name" placeholder="Seu Nome Completo" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white">
+            <input type="text" id="user-address" placeholder="Endereço (Rua, nº, Bairro)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white">
+
+            <select id="user-region" onchange="calculateSummary()" class="w-full bg-[#1E293B] border border-white/10 rounded-xl px-4 py-3 outline-none text-white text-sm">
+                <option value="">Selecione a Região de Entrega</option>
+                <option value="0">Retirada no Local (R$ 0,00)</option>
+                <option value="22">Bertioga Centro (R$ 22,00)</option>
+                <option value="18">Rio da Praia / Maitinga / São Rafael (R$ 18,00)</option>
+                <option value="18">Riviera (R$ 18,00)</option>
+                <option value="10">Vista Linda / Indaiatuba (R$ 10,00)</option>
+                <option value="40">Guaratuba / Boraceia (R$ 40,00)</option>
+            </select>
+
+            <select id="user-payment" class="w-full bg-[#1E293B] border border-white/10 rounded-xl px-4 py-3 outline-none text-white text-sm">
+                <option value="Pix">Pix</option>
+                <option value="Cartão">Cartão (Maquininha)</option>
+                <option value="Dinheiro">Dinheiro</option>
+            </select>
+
+            <div class="bg-white/5 p-5 rounded-2xl space-y-2 text-sm border border-white/5">
+                <div class="flex justify-between opacity-60"><span>Subtotal</span> <span id="summary-subtotal">R$ 0,00</span></div>
+                <div class="flex justify-between text-lg font-black pt-3 border-t border-white/10">
+                    <span>TOTAL</span>
+                    <span id="summary-total">R$ 0,00</span>
+                </div>
+            </div>
+
+            <button onclick="sendWhatsApp()" class="w-full bg-green-500 py-5 rounded-2xl font-black uppercase tracking-tighter flex items-center justify-center gap-3 hover:bg-green-400 transition-colors">
+                <i class="fa-brands fa-whatsapp text-2xl"></i> Finalizar no WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- Catálogo embutido (fallback offline) -->
+    <script id="catalog-default-data" type="application/json">
+[
+    {"id":1,"name":"IGNITE V80 - Watermelon","category":"PODS DESCARTAVEIS","price":119.90,"stock":2,"img":"https://vapesocietysupplies.com/wp-content/uploads/2024/03/IGNITE-V80-Disposable-8000-Puffs-Watermelon-Ice.jpg","desc":"8000 Puffs, bateria recarregável, 5% Nic."},
+    {"id":2,"name":"ELFBAR 40K KING","category":"PODS DESCARTAVEIS","price":189.90,"stock":15,"img":"https://www.expresstabacaria.com.br/timthumb.php?src=image/catalog/pod/poddescartavel/elfbar/40kice/40kiceking.png&w=800=&h=800&zc=1","desc":"40.000 Puffs, display inteligente, sabor intenso."},
+    {"id":3,"name":"Vinho Rose Piscine","category":"Vinhos roses","price":95.00,"stock":0,"img":"https://carrefourbrfood.vtexassets.com/arquivos/ids/29731583/5289432_1.jpg?v=637756141677300000","desc":"Vinho rosé francês ideal para consumir com gelo."},
+    {"id":4,"name":"Gin Tanqueray 750ml","category":"Bebidas Destiladas","price":135.00,"stock":8,"img":"https://carrefourbr.vtexassets.com/arquivos/ids/111833935/Kit-Gin-Tanqueray-London-Dry-750ml-com-1-Taca-de-Vidro.jpg?v=638189067945030000","desc":"London Dry Gin de alta qualidade."},
+    {"id":5,"name":"IGNITE V300 - Blue Razz","category":"PODS DESCARTAVEIS","price":159.00,"stock":1,"img":"https://images.tcdn.com.br/img/img_prod/1329322/pod_descartavel_ignite_v150_15000_puffs_2023_1_68df4479fb50080134ccd3766bf451dc.jpg","desc":"Design compacto, 3000 Puffs premium."},
+    {"id":6,"name":"Mix 40K Ignite Limited","category":"PODS DESCARTAVEIS","price":199.90,"stock":5,"img":"https://ss-static-001.esmsv.com/r/content/host1/0059c6c253dd50c638e874fed36706df/img/products/ignite-mix-3-85c545f9fe4d8fcd1817568420925143-1024-1024.webp","desc":"Edição limitada com dois sabores em um."},
+    {"id":7,"name":"Tabaco Amsterdam Blend","category":"Tabacos","price":35.00,"stock":12,"img":"https://cdn.awsli.com.br/2500x2500/1238/1238670/produto/233141162/fumo-de-enrolar-amsterdam---1-4wovgfsoz4.jpeg","desc":"Blend suave para cigarros artesanais."},
+    {"id":8,"name":"Isqueiro Clipper Metal","category":"Acessorio","price":45.00,"stock":0,"img":"https://images.tcdn.com.br/img/img_prod/723361/isqueiro_clipper_grande_3289_1_20191001225205.jpg","desc":"Colecionável, recarregável e resistente."},
+    {"id":9,"name":"Elfbar 40k king - Pineapple Pom","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"Elfbar 40K King Pineapple Pom chat.png","desc":"Sabor tropical: abacaxi com pitaya."},
+    {"id":10,"name":"Elfbar 40k king - Double Apple ICE","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"O Elfbar 40K King Double Apple Ice.png","desc":"40.000 puffs. Sabor maçã dupla gelada."},
+    {"id":11,"name":"Elfbar 40k king - SOUR APPLE Ice","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"Elfbar 40k king - SOUR APPLE Ice.png","desc":"Maçã ácida com toque gelado. 40.000 puffs."},
+    {"id":12,"name":"Elfbar 40k king - SOUR Lush Gummy","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://tse4.mm.bing.net/th/id/OIP.ygz1W0CctorxFk3HvjZm2QHaHa?pid=Api&P=0&h=180","desc":"Goma ácida gelada. 40.000 puffs."},
+    {"id":13,"name":"Elfbar 40k king - SOUR Strawberry Dragonfruit","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://www.vapebarmarket.de/img/39990/EBNICKG2/EBNICKG2.webp","desc":"Morango e pitaya ácidos. 40.000 puffs."},
+    {"id":14,"name":"Elfbar 40k king - Miami Mint","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://elfbar.ae/cdn/shop/files/Miami_Mint.jpg?v=1733743680&width=1206","desc":"Menta refrescante estilo Miami."},
+    {"id":15,"name":"Elfbar 40k king - Mango Magic","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://www.4vaper.com/wp-content/uploads/2025/06/elfbar-ice-king-mango-magic-40k.webp","desc":"Manga intensa com toque gelado."},
+    {"id":16,"name":"Elfbar 40k king - Cherry Fuse","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://images.tcdn.com.br/img/img_prod/1021633/elfbar_ice_king_cherry_fuse_5_descartavel_40_000_puffs_1937_1_4622b746488639d829d1a091682f950d.jpg","desc":"Cereja com toque cítrico. 40.000 puffs."},
+    {"id":17,"name":"Elfbar 40k king - GRAPE Ice","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://bluewdpe.com/wp-content/uploads/2025/10/Elf-Bar-Grape-Ice.jpg","desc":"Uva gelada intensa. 40.000 puffs."},
+    {"id":18,"name":"IGNITE V80 - Ice Mint","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Menta gelada. 8.000 puffs."},
+    {"id":19,"name":"IGNITE V80 - GRAPE Ice","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://vapesocietysupplies.com/wp-content/uploads/2024/03/IGNITE-V80-Disposable-8000-Puffs-Grape-Ice.jpg","desc":"Uva gelada. 8.000 puffs."},
+    {"id":20,"name":"IGNITE V80 - Strawberry Kiwi","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://static.wixstatic.com/media/d9d366_a30be0c513c74d4f9624f2b8e3e5253e~mv2.webp","desc":"Morango com kiwi. 8.000 puffs."},
+    {"id":21,"name":"IGNITE V80 - Blueberry Lemon","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://static.wixstatic.com/media/d9d366_e7dc00af69c44217bc060e14ff934033~mv2.webp/v1/fit/w_500,h_500,q_90/file.webp","desc":"Mirtilo com limão. 8.000 puffs."},
+    {"id":22,"name":"IGNITE V80 - Menthol","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://static.wixstatic.com/media/d9d366_b8616f10c7d949f992e4515d812e0f7d~mv2.png/v1/fit/w_500,h_500,q_90/file.png","desc":"Mentol clássico. 8.000 puffs."},
+    {"id":23,"name":"IGNITE V80 - Strawberry Ice","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://cdn.awsli.com.br/2500x2500/2745/2745662/produto/269617974/pod-desc-ignite-v80-8-000---strawberry-ice-jp1nxc1t4m.jpg","desc":"Morango gelado. 8.000 puffs."},
+    {"id":24,"name":"IGNITE V80 - Banana Cherry","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://rosariovapeshop.com/wp-content/uploads/2024/04/1000227851.jpg","desc":"Banana com cereja. 8.000 puffs."},
+    {"id":25,"name":"IGNITE V80 - Green Apple","category":"PODS DESCARTAVEIS","price":150.00,"stock":1,"img":"https://images.tcdn.com.br/img/img_prod/1021633/ignite_v80_green_apple_black_edition_8000_puffs_1497_1_aa34269efca85ebae3407ad01305f29b.jpg","desc":"Maçã verde. 8.000 puffs."},
+    {"id":26,"name":"IGNITE V300 - Strawberry Kiwi","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-STRAWBERRY-KIWI-600x600.png","desc":"Morango e kiwi. 30.000 puffs."},
+    {"id":27,"name":"IGNITE V300 - Pineapple Kiwi Dragon Fruit","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://goatvape.com.ar/wp-content/uploads/2025/08/V300.zip-9.png","desc":"Abacaxi, kiwi e pitaya. 30.000 puffs."},
+    {"id":28,"name":"IGNITE V300 - Blueberry ICE","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-BLUEBERRY-ICE.png","desc":"Mirtilo gelado. 30.000 puffs."},
+    {"id":29,"name":"IGNITE V300 - Watermelon Mix","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://vapetvupt.com/wp-content/uploads/2025/06/comprar-ignite-v300-online-campinas-sp.webp","desc":"Melancia mix. 30.000 puffs."},
+    {"id":30,"name":"IGNITE V300 - Watermelon ICE","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://goatvape.com.ar/wp-content/uploads/2025/08/V300.zip-8.png","desc":"Melancia gelada. 30.000 puffs."},
+    {"id":31,"name":"IGNITE V300 - Blueberry Strawberry Coconut","category":"PODS DESCARTAVEIS","price":200.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-BLUEBERRY-STRAWBERRY-COCONUT.png","desc":"Mirtilo, morango e coco. 30.000 puffs."},
+    {"id":32,"name":"IGNITE V300 - Banana Ice","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-STRAWBERRY-BANANA-480x480.png","desc":"Banana gelada. 30.000 puffs."},
+    {"id":33,"name":"IGNITE V300 - Pineapple Ice","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-PINEAPPLE-ICE.png","desc":"Abacaxi gelado. 30.000 puffs."},
+    {"id":34,"name":"IGNITE V300 - Pineapple Mango","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-PINEAPPLE-MANGO.png","desc":"Abacaxi e manga. 30.000 puffs."},
+    {"id":35,"name":"IGNITE V300 - Cactus Lime Soda","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-CACTUS-LIME-SODA.png","desc":"Cacto e limão soda. 30.000 puffs."},
+    {"id":36,"name":"IGNITE V300 - Icy Mint","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://goatvape.com.ar/wp-content/uploads/2026/01/BLACK-CHERRY-4.png","desc":"Menta gelada intensa. 30.000 puffs."},
+    {"id":37,"name":"IGNITE V300 - Menthol","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-MENTHOL.png","desc":"Mentol clássico. 30.000 puffs."},
+    {"id":38,"name":"IGNITE V300 - Green Apple","category":"PODS DESCARTAVEIS","price":220.00,"stock":1,"img":"https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-GREEN-APPLE.png","desc":"Maçã verde. 30.000 puffs."},
+    {"id":39,"name":"IGNITE V155 Slim - Strawberry Watermelon ICE","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"https://whitecloudbrasil.com/wp-content/uploads/2025/10/v155-ultras-main.webp","desc":"Morango e melancia gelada. 15.500 puffs."},
+    {"id":40,"name":"IGNITE V155 Slim - Banana Ice","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"https://vape-shop-dubai.com/cdn/shop/files/IGNITE_V155_Disposable_Vape_15500_PUFFS-1_1800x1800.png?v=1760127029","desc":"Banana gelada. 15.500 puffs."},
+    {"id":41,"name":"IGNITE V155 Slim - Strawberry Ice","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://tabakkatabacaria.com/wp-content/uploads/2025/10/Imagem-do-WhatsApp-de-2025-10-16-as-21.47.37_8977e8dc-e1760662180921.jpg","desc":"Morango gelado. 15.500 puffs."},
+    {"id":42,"name":"IGNITE V155 Slim - Watermelon Mix","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"https://cdn.awsli.com.br/300x300/2745/2745662/produto/278764572/6b7fbca0b65b962641b6d2e2a9b02232-4bdt9frfud.jpg","desc":"Melancia mix. 15.500 puffs."},
+    {"id":43,"name":"Mix 40k Ignite - Mighty Melon / Menthol","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Dois sabores: melão e mentol."},
+    {"id":44,"name":"Mix 40k Ignite - Icy Mint / Peach Grape","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Dois sabores: menta gelada e pêssego-uva."},
+    {"id":45,"name":"Ignite Ice v40k - Blue Razz Lemon","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Blue razz com limão. 40.000 puffs."},
+    {"id":46,"name":"Ignite Ice v40k - Cola","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Sabor cola refrescante. 40.000 puffs."},
+    {"id":47,"name":"Ignite v40k Sweet - Blue Razz B Pop","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Blue razz bubblepop. 40.000 puffs."},
+    {"id":48,"name":"IGNITE V15000 - Peppermint & Cream","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Hortelã e creme suave. 15.000 puffs."},
+    {"id":49,"name":"IGNITE V80 - Cactus","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"cactus.jpeg","desc":"Sabor cacto refrescante. 8.000 puffs."},
+    {"id":50,"name":"Mix 40k Ignite","category":"PODS DESCARTAVEIS","price":180.00,"stock":1,"img":"http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758","desc":"Mix especial Ignite. 40.000 puffs."}
+]
+    </script>
+
+    <script>
+// ================================
+// CATÁLOGO DE PRODUTOS
+// ================================
+
+const CATALOG_STORAGE_KEY = 'catalogProducts';
+const CATALOG_DEFAULT_STORAGE_KEY = 'catalogProductsDefault';
+const EMBEDDED_CATALOG_DATA_ID = 'catalog-default-data';
+
+let cachedProducts = null;
+let catalogReadyPromise = null;
+
+function cloneProducts(products) {
+    return JSON.parse(JSON.stringify(products || []));
+}
+
+function getProductSignature(product) {
+    return [
+        product?.name || '',
+        product?.category || '',
+        Number(product?.price || 0).toFixed(2),
+        product?.img || ''
+    ].join('||');
+}
+
+function dedupeProducts(products) {
+    const seen = new Set();
+    return (products || []).filter(product => {
+        const signature = getProductSignature(product);
+        if (seen.has(signature)) return false;
+        seen.add(signature);
+        return true;
+    });
+}
+
+// ✅ BUG CORRIGIDO: era fetch('/api/produtos') — assíncrono e não retornava dados
+function getStoredProducts(key) {
+    const stored = localStorage.getItem(key);
+    if (!stored) return null;
+    try {
+        return dedupeProducts(JSON.parse(stored));
+    } catch (error) {
+        console.error(`Erro ao ler ${key}:`, error);
+        return null;
+    }
+}
+
+function getEmbeddedDefaultProducts() {
+    const embeddedData = document.getElementById(EMBEDDED_CATALOG_DATA_ID)?.textContent?.trim();
+    if (!embeddedData) return null;
+    try {
+        return dedupeProducts(JSON.parse(embeddedData));
+    } catch (error) {
+        console.error('Erro ao ler catálogo embutido:', error);
+        return null;
+    }
+}
+
+// ✅ NOVO: tenta carregar da API primeiro, depois localStorage, depois embutido
+async function initializeCatalog() {
+    if (catalogReadyPromise) return catalogReadyPromise;
+
+    catalogReadyPromise = (async () => {
+        // 1. Tenta API
+        try {
+            const res = await fetch('/api/produtos');
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    cachedProducts = dedupeProducts(data);
+                    localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(cachedProducts));
+                    return cachedProducts;
+                }
+            }
+        } catch (e) {
+            console.log('API não disponível, usando fallback local.');
+        }
+
+        // 2. Tenta localStorage
+        const storedProducts = getStoredProducts(CATALOG_STORAGE_KEY);
+        if (storedProducts && storedProducts.length > 0) {
+            cachedProducts = storedProducts;
+            return cachedProducts;
+        }
+
+        // 3. Tenta localStorage de default
+        const defaultStoredProducts = getStoredProducts(CATALOG_DEFAULT_STORAGE_KEY);
+        if (defaultStoredProducts && defaultStoredProducts.length > 0) {
+            cachedProducts = defaultStoredProducts;
+            return cachedProducts;
+        }
+
+        // 4. Usa catálogo embutido no HTML
+        const embedded = getEmbeddedDefaultProducts();
+        if (embedded && embedded.length > 0) {
+            localStorage.setItem(CATALOG_DEFAULT_STORAGE_KEY, JSON.stringify(embedded));
+            cachedProducts = cloneProducts(embedded);
+            return cachedProducts;
+        }
+
+        throw new Error('Nenhuma fonte de catálogo disponível.');
+    })();
+
+    try {
+        return await catalogReadyPromise;
+    } catch (error) {
+        catalogReadyPromise = null;
+        throw error;
+    }
+}
+
+function getCatalogProducts() {
+    return cachedProducts || [];
+}
+
+function loadCategories() {
+    const products = getCatalogProducts();
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+    const categoryList = document.getElementById('category-list');
+    if (!categoryList) return;
+    const existing = categoryList.querySelectorAll('.category-pill:not(:first-child)');
+    existing.forEach(pill => pill.remove());
+    categories.forEach(category => {
+        const btn = document.createElement('button');
+        btn.className = 'category-pill whitespace-nowrap px-5 py-2 rounded-xl border border-white/10 text-xs font-bold uppercase transition-all';
+        btn.textContent = category;
+        btn.onclick = function() { filterCategory(category, this); };
+        categoryList.appendChild(btn);
+    });
+}
+
+let cart = [];
+let totalPedidos = parseInt(localStorage.getItem('totalPedidos') || '0', 10);
+let selectedCategory = 'Todos';
+let productSearchTerm = '';
+
+function updateTotalPedidosUI() {
+    const displayCheckout = document.getElementById('total-pedidos-display');
+    const displayHeader = document.getElementById('total-pedidos-header');
+    if (displayCheckout) displayCheckout.textContent = totalPedidos;
+    if (displayHeader) displayHeader.textContent = totalPedidos;
+}
+
+async function bootstrapCatalog() {
+    try {
+        await initializeCatalog();
+        loadCategories();
+        applyFilters();
+        updateTotalPedidosUI();
+    } catch (error) {
+        console.error('Erro ao inicializar catálogo:', error);
+        renderProducts([]);
+    }
+}
+
+async function refreshCatalog() {
+    cachedProducts = null;
+    catalogReadyPromise = null;
+    await bootstrapCatalog();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapCatalog);
+} else {
+    bootstrapCatalog();
+}
+
+function renderProducts(items) {
+    const grid = document.getElementById('product-grid');
+    if (!items || items.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-2 text-center text-gray-400 py-12">
+                <i class="fa-solid fa-magnifying-glass text-2xl mb-3"></i>
+                <p class="text-sm font-bold uppercase">Nenhum produto encontrado</p>
+            </div>
+        `;
+        return;
+    }
+    grid.innerHTML = items.map(item => {
+        const isOut = item.stock === 0;
+        const isLow = item.stock > 0 && item.stock <= 3;
+        let badge = isOut
+            ? '<span class="absolute top-2 right-2 bg-red-600 text-[9px] font-black px-2 py-1 rounded-md uppercase z-10">Esgotado</span>'
+            : (isLow ? `<span class="absolute top-2 right-2 bg-orange-500 animate-pulse text-[9px] font-black px-2 py-1 rounded-md uppercase z-10 shadow-lg">AS ULTIMAS ${item.stock}</span>` : '');
+
+        // ✅ BUG CORRIGIDO: IDs string (MongoDB ObjectId) agora são passados entre aspas
+        const safeId = String(item.id || item._id || '');
+        return `
+            <div class="product-card relative glass rounded-[2rem] p-3 flex flex-col ${isOut ? 'opacity-40 grayscale pointer-events-none' : 'active:scale-95 cursor-pointer'}" onclick="openProduct('${safeId}')">
+                ${badge}
+                <img src="${item.img}" class="w-full h-36 object-cover rounded-2xl mb-3 shadow-inner" onerror="this.src='https://via.placeholder.com/300x300/1e293b/ffffff?text=JR+TABACARIA'">
+                <h3 class="font-bold text-xs mb-1 truncate">${item.name}</h3>
+                <p class="text-[9px] text-purple-400 font-black uppercase tracking-widest mb-2">${item.category}</p>
+                <p class="font-black text-sm text-white">R$ ${item.price.toFixed(2)}</p>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterCategory(cat, btn) {
+    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    selectedCategory = cat;
+    applyFilters();
+}
+
+function handleSearchInput(value) {
+    productSearchTerm = (value || '').toLowerCase().trim();
+    applyFilters();
+}
+
+function applyFilters() {
+    const products = getCatalogProducts();
+    const byCategory = selectedCategory === 'Todos'
+        ? products
+        : products.filter(i => i.category === selectedCategory);
+    const filtered = productSearchTerm
+        ? byCategory.filter(i => (i.name || '').toLowerCase().includes(productSearchTerm))
+        : byCategory;
+    renderProducts(filtered);
+}
+
+// ✅ BUG CORRIGIDO: usa comparação de string para suportar ObjectIds do MongoDB
+function openProduct(id) {
+    const item = getCatalogProducts().find(i => String(i.id || i._id) === String(id));
+    if (!item) return;
+    const safeId = String(item.id || item._id);
+    document.getElementById('modal-content').innerHTML = `
+        <img src="${item.img}" class="w-full h-56 object-cover rounded-[2rem] mb-6 neon-border" onerror="this.src='https://via.placeholder.com/600x400/1e293b/ffffff?text=JR+PRODUTO'">
+        <h2 class="text-2xl font-black mb-1 italic text-white">${item.name}</h2>
+        <p class="text-xs text-purple-400 font-bold mb-4 uppercase tracking-widest">${item.category} • Disponível: ${item.stock} un.</p>
+        <p class="text-gray-400 text-sm mb-6 leading-relaxed">${item.desc || 'Produto premium Tabacaria JR.'}</p>
+        <textarea id="product-obs" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm mb-6 outline-none focus:border-purple-500 text-white" placeholder="Deseja algum sabor especifico ou observação?"></textarea>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center bg-white/10 rounded-2xl p-1 text-white">
+                <button onclick="updateQty(-1, ${item.stock})" class="w-10 h-10 font-bold text-xl">-</button>
+                <span id="product-qty" class="w-10 text-center font-black">1</span>
+                <button onclick="updateQty(1, ${item.stock})" class="w-10 h-10 font-bold text-xl">+</button>
+            </div>
+            <button onclick="addToCart('${safeId}')" class="flex-1 bg-purple-600 font-black py-4 rounded-2xl shadow-lg shadow-purple-500/20 uppercase text-white">
+                Adicionar • R$ <span id="dynamic-price">${item.price.toFixed(2)}</span>
+            </button>
+        </div>
+    `;
+    document.getElementById('product-modal').classList.remove('hidden');
+}
+
+function updateQty(val, stock) {
+    const el = document.getElementById('product-qty');
+    const priceEl = document.getElementById('dynamic-price');
+    let current = parseInt(el.innerText);
+    let unitPrice = parseFloat(priceEl.innerText) / current;
+    if (val > 0 && current >= stock) return alert(`Limite em estoque: ${stock} un.`);
+    if (current + val >= 1) {
+        current += val;
+        el.innerText = current;
+        priceEl.innerText = (unitPrice * current).toFixed(2);
+    }
+}
+
+// ✅ BUG CORRIGIDO: busca por ID com comparação de string
+function addToCart(id) {
+    const item = getCatalogProducts().find(i => String(i.id || i._id) === String(id));
+    if (!item) return;
+    const qty = parseInt(document.getElementById('product-qty').innerText);
+    const obs = document.getElementById('product-obs').value;
+    cart.push({ ...item, qty, obs });
+    updateCartUI();
+    closeProductModal();
+}
+
+function updateCartUI() {
+    const cartBar = document.getElementById('cart-bar');
+    if (cart.length > 0) {
+        cartBar.classList.remove('hidden');
+        const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+        document.getElementById('cart-count').innerText = cart.length;
+        document.getElementById('cart-total').innerText = `R$ ${total.toFixed(2)}`;
+    } else {
+        cartBar.classList.add('hidden');
+    }
+}
+
+function calculateSummary() {
+    const sub = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+    const deliveryTax = parseFloat(document.getElementById('user-region').value) || 0;
+    const total = sub + deliveryTax;
+    document.getElementById('summary-subtotal').innerText = `R$ ${sub.toFixed(2)}`;
+    document.getElementById('summary-total').innerHTML = `
+        <div class="flex flex-col items-end">
+            <span class="text-[10px] opacity-60 font-normal">Entrega: R$ ${deliveryTax.toFixed(2)}</span>
+            <span class="text-white">R$ ${total.toFixed(2)}</span>
+        </div>
+    `;
+}
+
+async function sendWhatsApp() {
+    const name = document.getElementById('user-name').value.trim();
+    const addr = document.getElementById('user-address').value.trim();
+    const pay = document.getElementById('user-payment').value;
+    const regionSelect = document.getElementById('user-region');
+
+    if (!name || !addr || regionSelect.value === '') {
+        return alert('Preencha Nome, Endereço e Região de Entrega!');
+    }
+
+    totalPedidos++;
+    localStorage.setItem('totalPedidos', totalPedidos.toString());
+    updateTotalPedidosUI();
+
+    const regionName = regionSelect.options[regionSelect.selectedIndex].text;
+    const deliveryTax = parseFloat(regionSelect.value);
+    const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+    const totalFinal = subtotal + deliveryTax;
+
+    let msg = `*EMPÓRIO E TABACARIA JR - PEDIDO #${totalPedidos}*\n`;
+    msg += `----------------------------\n`;
+    msg += `*Cliente:* ${name}\n`;
+    msg += `*Endereço:* ${addr}\n`;
+    msg += `*Região:* ${regionName}\n`;
+    msg += `*Pagamento:* ${pay}\n`;
+    msg += `----------------------------\n`;
+    msg += `*ITENS:*\n`;
+    cart.forEach(i => {
+        msg += `• ${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}`;
+        if (i.obs) msg += `\n  _Obs: ${i.obs}_`;
+        msg += `\n`;
+    });
+    msg += `----------------------------\n`;
+    msg += `*Subtotal:* R$ ${subtotal.toFixed(2)}\n`;
+    msg += `*Taxa de Entrega:* R$ ${deliveryTax.toFixed(2)}\n`;
+    msg += `*TOTAL FINAL: R$ ${totalFinal.toFixed(2)}*`;
+
+    const url = `https://wa.me/5513997902909?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
+
+    // ✅ NOVO: salvar pedido na API
+    const pedidoData = {
+        cliente: name,
+        endereco: addr,
+        regiao: regionName,
+        pagamento: pay,
+        itens: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, obs: i.obs || '' })),
+        subtotal,
+        taxaEntrega: deliveryTax,
+        total: totalFinal,
+        status: 'pendente'
+    };
+    try {
+        await fetch('/api/pedidos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedidoData)
+        });
+    } catch (e) {
+        // Offline: salva só no localStorage
+        console.log('API indisponível — pedido salvo apenas localmente.');
+    }
+
+    // Salvar pedido no localStorage (fallback)
+    const vendas = JSON.parse(localStorage.getItem('vendas') || '[]');
+    vendas.push({ id: totalPedidos, data: new Date().toISOString(), ...pedidoData });
+    localStorage.setItem('vendas', JSON.stringify(vendas));
+
+    // Atualizar estoque no localStorage
+    const products = getCatalogProducts();
+    cart.forEach(cartItem => {
+        const product = products.find(p => String(p.id || p._id) === String(cartItem.id || cartItem._id));
+        if (product) {
+            product.stock = Math.max(0, (product.stock ?? 0) - cartItem.qty);
+        }
+    });
+    localStorage.setItem('catalogProducts', JSON.stringify(products));
+    applyFilters();
+
+    cart = [];
+    updateCartUI();
+    closeCheckout();
+}
+
+function closeProductModal() {
+    document.getElementById('product-modal').classList.add('hidden');
+}
+
+function openCheckout() {
+    document.getElementById('checkout-modal').classList.remove('hidden');
+    updateTotalPedidosUI();
+    renderCheckoutItems();
+    calculateSummary();
+}
+
+function closeCheckout() {
+    document.getElementById('checkout-modal').classList.add('hidden');
+}
+
+function renderCheckoutItems() {
+    document.getElementById('checkout-items').innerHTML = cart.map((item, index) => `
+        <div class="flex items-center gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
+            <img src="${item.img}" class="w-12 h-12 object-cover rounded-lg">
+            <div class="flex-1">
+                <h4 class="text-xs font-bold text-white">${item.name}</h4>
+                <p class="text-[10px] opacity-60">${item.qty}x R$ ${item.price.toFixed(2)}</p>
+            </div>
+            <button onclick="cart.splice(${index}, 1); updateCartUI(); renderCheckoutItems(); calculateSummary();" class="text-red-400 p-2">
+                <i class="fa-solid fa-trash text-sm"></i>
+            </button>
+        </div>
+    `).join('');
+}
+    // Sincronização em tempo real com o painel admin
+    const _syncChannel = new BroadcastChannel('jr_sync');
+    _syncChannel.onmessage = (e) => {
+        if (e.data?.type === 'produtos_changed') refreshCatalog();
+    };
+    </script>
+</body>
+</html>

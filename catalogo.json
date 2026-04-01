@@ -1,0 +1,452 @@
+[
+    {
+        "id":  1,
+        "name":  "IGNITE V80 - Watermelon",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  119.90,
+        "stock":  2,
+        "img":  "https://vapesocietysupplies.com/wp-content/uploads/2024/03/IGNITE-V80-Disposable-8000-Puffs-Watermelon-Ice.jpg",
+        "desc":  "8000 Puffs, bateria recarregável, 5% Nic."
+    },
+    {
+        "id":  2,
+        "name":  "ELFBAR 40K KING",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  189.90,
+        "stock":  15,
+        "img":  "https://www.expresstabacaria.com.br/timthumb.php?src=image/catalog/pod/poddescartavel/elfbar/40kice/40kiceking.png\u0026w=800=\u0026h=800\u0026zc=1",
+        "desc":  "40.000 Puffs, display inteligente, sabor intenso."
+    },
+    {
+        "id":  3,
+        "name":  "Vinho Rosé Piscine",
+        "category":  "Vinhos rosés",
+        "price":  95.00,
+        "stock":  0,
+        "img":  "https://carrefourbrfood.vtexassets.com/arquivos/ids/29731583/5289432_1.jpg?v=637756141677300000",
+        "desc":  "Vinho rosé francês ideal para consumir com gelo."
+    },
+    {
+        "id":  4,
+        "name":  "Gin Tanqueray 750ml",
+        "category":  "Bebidas Destiladas",
+        "price":  135.00,
+        "stock":  8,
+        "img":  "https://carrefourbr.vtexassets.com/arquivos/ids/111833935/Kit-Gin-Tanqueray-London-Dry-750ml-com-1-Taca-de-Vidro.jpg?v=638189067945030000",
+        "desc":  "London Dry Gin de alta qualidade."
+    },
+    {
+        "id":  5,
+        "name":  "IGNITE V300 - Blue Razz",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  159.00,
+        "stock":  1,
+        "img":  "https://images.tcdn.com.br/img/img_prod/1329322/pod_descartavel_ignite_v150_15000_puffs_2023_1_68df4479fb50080134ccd3766bf451dc.jpg",
+        "desc":  "Design compacto, 3000 Puffs premium."
+    },
+    {
+        "id":  6,
+        "name":  "Mix 40K Ignite Limited",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  199.90,
+        "stock":  5,
+        "img":  "https://ss-static-001.esmsv.com/r/content/host1/0059c6c253dd50c638e874fed36706df/img/products/ignite-mix-3-85c545f9fe4d8fcd1817568420925143-1024-1024.webp",
+        "desc":  "Edição limitada com dois sabores em um."
+    },
+    {
+        "id":  7,
+        "name":  "Tabaco Amsterdam Blend",
+        "category":  "Tabacos",
+        "price":  35.00,
+        "stock":  12,
+        "img":  "https://cdn.awsli.com.br/2500x2500/1238/1238670/produto/233141162/fumo-de-enrolar-amsterdam---1-4wovgfsoz4.jpeg",
+        "desc":  "Blend suave para cigarros artesanais."
+    },
+    {
+        "id":  8,
+        "name":  "Isqueiro Clipper Metal",
+        "category":  "Acessorio",
+        "price":  45.00,
+        "stock":  0,
+        "img":  "https://images.tcdn.com.br/img/img_prod/723361/isqueiro_clipper_grande_3289_1_20191001225205.jpg",
+        "desc":  "Colecionável, recarregável e resistente."
+    },
+    {
+        "id":  9,
+        "name":  "Elfbar 40k king - Pineapple Pom",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "Elfbar 40K King Pineapple Pom chat.png",
+        "desc":  "Elfbar 40K King – Pineapple Pom entrega uma experiência tropical intensa, combinando o doce suculento do abacaxi com o toque levemente ácido e refrescante da romã. Um sabor equilibrado, marcante e perfeito pra quem curte opções frutadas com personalidade.."
+    },
+    {
+        "id":  10,
+        "name":  "Elfbar 40k king - Double Apple ICE ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "O Elfbar 40K King Double Apple Ice.png",
+        "desc":  "O Elfbar 40K King Double Apple Ice é um dispositivo de vape de alta capacidade que oferece uma experiência de sabor intensa e refrescante. Este dispositivo foi concebido para durar, oferecendo uma contagem de baforadas de até 40.000, o que significa que você pode desfrutar do seu vape por mais tempo sem se preocupar em ficar sem bateria ou e-líquido.O sabor Double Apple Ice combina o sabor doce e picante das maçãs vermelhas e verdes com uma sensação de gelo fresco para uma experiência de vapor equilibrada e revigorante."
+    },
+    {
+        "id":  11,
+        "name":  "Elfbar 40k king - SOUR APPLE Ice ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "Elfbar 40k king - SOUR APPLE Ice.png",
+        "desc":  "O Elfbar Ice King 40000, no sabor Sour Apple Ice, é um vaporizador premium de alta capacidade, projetado para usuários que buscam longa duração e sabor intenso. Como parte da linha Ice King, ele se destaca pela enorme quantidade de puffs (até 40.000) e pela experiência gelada e refrescante."
+    },
+    {
+        "id":  12,
+        "name":  "Elfbar 40k king - SOUR lush Gummy ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://tse4.mm.bing.net/th/id/OIP.ygz1W0CctorxFk3HvjZm2QHaHa?pid=Api\u0026P=0\u0026h=180",
+        "desc":  "O Elfbar Ice King 40000, no sabor Sour Lush Gummy, é um dispositivo de vapor de alta capacidade que oferece uma experiência intensa e marcante. Projetado para quem busca praticidade sem abrir mão de qualidade e sabor, ele se destaca pela enorme quantidade de puffs (até 40.000) e pela sensação de gelo fresco com sabor de goma ácida."
+    },
+    {
+        "id":  13,
+        "name":  "Elfbar 40k king - SOUR strawberry dragonfruit",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://www.vapebarmarket.de/img/39990/EBNICKG2/EBNICKG2.webp",
+        "desc":  "O Elfbar Ice King 40000, no sabor Sour Strawberry Dragonfruit (morango e pitaya ácidos), é um dispositivo de vapor de altíssima capacidade e desempenho premium, projetado para usuários que buscam máxima durabilidade e uma experiência intensa e revigorante. Parte da renomada linha Ice King, ele se destaca pela colossal contagem de baforadas (até 40.000) e pela sensação de gelo refrescante combinada com a complexidade de frutas cítricas e doces."
+    },
+    {
+        "id":  14,
+        "name":  "Elfbar 40k king - Miami mint ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://elfbar.ae/cdn/shop/files/Miami_Mint.jpg?v=1733743680\u0026width=1206",
+        "desc":  "."
+    },
+    {
+        "id":  15,
+        "name":  "Elfbar 40k king - Mango Magic Mango Magic ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://www.4vaper.com/wp-content/uploads/2025/06/elfbar-ice-king-mango-magic-40k.webp",
+        "desc":  "."
+    },
+    {
+        "id":  16,
+        "name":  "Elfbar 40k king - Cherry fuse ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://images.tcdn.com.br/img/img_prod/1021633/elfbar_ice_king_cherry_fuse_5_descartavel_40_000_puffs_1937_1_4622b746488639d829d1a091682f950d.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  17,
+        "name":  "Elfbar 40k king - GRAPE ice ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://bluewdpe.com/wp-content/uploads/2025/10/Elf-Bar-Grape-Ice.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  18,
+        "name":  "IGNITE V80 - Ice mint ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  19,
+        "name":  "IGNITE V80 - GRAPE ice ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://vapesocietysupplies.com/wp-content/uploads/2024/03/IGNITE-V80-Disposable-8000-Puffs-Grape-Ice.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  20,
+        "name":  "IGNITE V80 - Strawberry kiwi  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://static.wixstatic.com/media/d9d366_a30be0c513c74d4f9624f2b8e3e5253e~mv2.webp",
+        "desc":  "."
+    },
+    {
+        "id":  21,
+        "name":  "IGNITE V80 - Blueberry lemon ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://static.wixstatic.com/media/d9d366_e7dc00af69c44217bc060e14ff934033~mv2.webp/v1/fit/w_500,h_500,q_90/file.webp",
+        "desc":  "."
+    },
+    {
+        "id":  22,
+        "name":  "IGNITE V80 - Menthol   ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://static.wixstatic.com/media/d9d366_b8616f10c7d949f992e4515d812e0f7d~mv2.png/v1/fit/w_500,h_500,q_90/file.png",
+        "desc":  "."
+    },
+    {
+        "id":  23,
+        "name":  "IGNITE V80 - Strawberry ice ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://cdn.awsli.com.br/2500x2500/2745/2745662/produto/269617974/pod-desc-ignite-v80-8-000---strawberry-ice-jp1nxc1t4m.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  24,
+        "name":  "IGNITE V80 - Banana Cherry   ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://rosariovapeshop.com/wp-content/uploads/2024/04/1000227851.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  25,
+        "name":  "IGNITE V80 - Green Apple  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  150.00,
+        "stock":  1,
+        "img":  "https://images.tcdn.com.br/img/img_prod/1021633/ignite_v80_green_apple_black_edition_8000_puffs_1497_1_aa34269efca85ebae3407ad01305f29b.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  26,
+        "name":  "IGNITE V300 - Strawberry kiwi ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-STRAWBERRY-KIWI-600x600.png",
+        "desc":  "."
+    },
+    {
+        "id":  27,
+        "name":  "IGNITE V300 -Pineapple kiwi dragon fruit  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://goatvape.com.ar/wp-content/uploads/2025/08/V300.zip-9.png",
+        "desc":  "."
+    },
+    {
+        "id":  28,
+        "name":  "IGNITE V300- Blueberry ICE ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-BLUEBERRY-ICE.png",
+        "desc":  "."
+    },
+    {
+        "id":  29,
+        "name":  "IGNITE V300 - Watermelon mix  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://vapetvupt.com/wp-content/uploads/2025/06/comprar-ignite-v300-online-campinas-sp.webp",
+        "desc":  "."
+    },
+    {
+        "id":  30,
+        "name":  "IGNITE V300 - Watermelon ICE ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://goatvape.com.ar/wp-content/uploads/2025/08/V300.zip-8.png",
+        "desc":  "."
+    },
+    {
+        "id":  31,
+        "name":  "IGNITE V300 - Blueberry strawberry coconut ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  200.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-BLUEBERRY-STRAWBERRY-COCONUT.png",
+        "desc":  "."
+    },
+    {
+        "id":  32,
+        "name":  "IGNITE V300 - Banana Ice  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-STRAWBERRY-BANANA-480x480.png",
+        "desc":  "."
+    },
+    {
+        "id":  33,
+        "name":  "IGNITE V300 - Pineapple ice ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-PINEAPPLE-ICE.png",
+        "desc":  "."
+    },
+    {
+        "id":  34,
+        "name":  "IGNITE V300 - Pineapple mango ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-PINEAPPLE-MANGO.png",
+        "desc":  "."
+    },
+    {
+        "id":  35,
+        "name":  "IGNITE V300 -Cactus Lime soda  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-CACTUS-LIME-SODA.png",
+        "desc":  "."
+    },
+    {
+        "id":  36,
+        "name":  "IGNITE V300 - Icymint  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://goatvape.com.ar/wp-content/uploads/2026/01/BLACK-CHERRY-4.png",
+        "desc":  "."
+    },
+    {
+        "id":  37,
+        "name":  "IGNITE V300 - Menthol  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-MENTHOL.png",
+        "desc":  "."
+    },
+    {
+        "id":  38,
+        "name":  "IGNITE V300 - Green apple  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  220.00,
+        "stock":  1,
+        "img":  "https://cloudmastersbrasil.com/wp-content/uploads/2025/07/IGNITE-V300-BLACK-GREEN-APPLE.png",
+        "desc":  "."
+    },
+    {
+        "id":  39,
+        "name":  "IGNITE V155 Slim - Strawberry watermelon ICE ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "https://whitecloudbrasil.com/wp-content/uploads/2025/10/v155-ultras-main.webp",
+        "desc":  "."
+    },
+    {
+        "id":  40,
+        "name":  "IGNITE V155 Slim - Banana Ice",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "https://vape-shop-dubai.com/cdn/shop/files/IGNITE_V155_Disposable_Vape_15500_PUFFS-1_1800x1800.png?v=1760127029",
+        "desc":  "."
+    },
+    {
+        "id":  41,
+        "name":  "IGNITE V155 Slim - Strawberry ice ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://tabakkatabacaria.com/wp-content/uploads/2025/10/Imagem-do-WhatsApp-de-2025-10-16-as-21.47.37_8977e8dc-e1760662180921.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  42,
+        "name":  "IGNITE V155 Slim - Watermelon mix",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "https://cdn.awsli.com.br/300x300/2745/2745662/produto/278764572/6b7fbca0b65b962641b6d2e2a9b02232-4bdt9frfud.jpg",
+        "desc":  "."
+    },
+    {
+        "id":  43,
+        "name":  "Mix 40k Ignite - Mighty MELON/ menthol  ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  44,
+        "name":  "Mix 40k Ignite - Icy mint/ Peach GRAPE ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  45,
+        "name":  "Ignite ice v40k - BLUE RAZZ LEMON ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  46,
+        "name":  "Ignite ice v40k - COLA ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  47,
+        "name":  "Ignite v40k SWEET - BLUE RAZZ B POP ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  48,
+        "name":  "IGNITE V15000 - PEPPERMINT \u0026 CREAM ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    },
+    {
+        "id":  49,
+        "name":  "IGNITE V80 CACTUS ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "cactus.jpeg",
+        "desc":  "."
+    },
+    {
+        "id":  50,
+        "name":  "Mix 40k Ignite ",
+        "category":  "PODS DESCARTAVEIS",
+        "price":  180.00,
+        "stock":  1,
+        "img":  "http://www.onlinevapegate.com/cdn/shop/files/Ignite_V80_Watermelon_Ice_Abu_Dhabi_1200x1200.png?v=1737467758",
+        "desc":  "."
+    }
+]

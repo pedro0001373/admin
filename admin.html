@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | Tabacaria JR</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* ── BASE ─────────────────────────────────────────────────────── */
+:root{--p:#7c3aed;--pl:#8b5cf6;--bg:#0F172A;--sur:#1E293B;--brd:rgba(255,255,255,.08)}
+*{box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:#F1F5F9;min-height:100vh}
+.glass{background:rgba(30,41,59,.75);backdrop-filter:blur(14px);border:1px solid var(--brd)}
+.card{background:var(--sur);border:1px solid var(--brd);border-radius:1.25rem}
+
+/* ── TABS & BUTTONS ──────────────────────────────────────────── */
+.tab-btn{padding:.55rem 1.1rem;border-radius:.75rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;cursor:pointer;white-space:nowrap;background:transparent;border:none;transition:all .2s}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.tab-btn.active{background:var(--p);color:#fff;box-shadow:0 0 16px rgba(124,58,237,.4)}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.62rem 1.2rem;border-radius:.75rem;font-size:.78rem;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn-p{background:linear-gradient(135deg,var(--p),#4f46e5);color:#fff}
+.btn-p:hover{box-shadow:0 6px 20px rgba(124,58,237,.4)}
+.btn-g{background:linear-gradient(135deg,#059669,#047857);color:#fff}
+.btn-r{background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff}
+.btn-y{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
+.btn-teal{background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff}
+.btn-sm{padding:.38rem .8rem;font-size:.7rem}
+
+/* ── FORM ────────────────────────────────────────────────────── */
+input,select,textarea{background:rgba(255,255,255,.05);border:1px solid var(--brd);border-radius:.75rem;padding:.62rem 1rem;color:#fff;font-size:.84rem;width:100%;outline:none;transition:border-color .2s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--pl)}
+select option{background:#1E293B;color:#fff}
+
+/* ── TABLE ───────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse}
+th{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700;padding:.7rem 1rem;text-align:left;border-bottom:1px solid var(--brd)}
+td{padding:.7rem 1rem;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── BADGES ──────────────────────────────────────────────────── */
+.badge{display:inline-block;padding:.22rem .6rem;border-radius:999px;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.b-pend{background:rgba(234,179,8,.15);color:#fbbf24}
+.b-done{background:rgba(34,197,94,.15);color:#4ade80}
+.b-canc{background:rgba(239,68,68,.15);color:#f87171}
+.b-deli{background:rgba(59,130,246,.15);color:#60a5fa}
+.b-cat{background:rgba(124,58,237,.15);color:#a78bfa}
+.b-low{background:rgba(249,115,22,.15);color:#fb923c}
+.b-out{background:rgba(239,68,68,.15);color:#f87171}
+.b-ok{background:rgba(34,197,94,.15);color:#4ade80}
+.b-venc{background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.b-prox{background:rgba(249,115,22,.2);color:#fb923c;border:1px solid rgba(249,115,22,.3)}
+.b-valid{background:rgba(34,197,94,.2);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+.b-semval{background:rgba(100,116,139,.15);color:#94a3b8}
+
+/* ── OVERLAYS & MODALS ───────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.mbox{background:#1e293b;border:1px solid var(--brd);border-radius:1.5rem;padding:1.75rem;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;position:relative}
+.mbox h3{font-size:1.05rem;font-weight:800;margin-bottom:1.2rem}
+.flabel{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;margin-bottom:.3rem;display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.7rem}
+.no-sb::-webkit-scrollbar{display:none}
+.stat-card{background:var(--sur);border:1px solid var(--brd);border-radius:1.25rem;padding:1.2rem;display:flex;align-items:center;gap:.9rem}
+.sico{width:2.75rem;height:2.75rem;border-radius:.8rem;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+
+/* ── ANIMAÇÕES ───────────────────────────────────────────────── */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.float{animation:float 3s ease-in-out infinite}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadein{animation:fadein .25s ease forwards}
+
+/* ── RESPONSIVIDADE ──────────────────────────────────────────── */
+@media(max-width:640px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}.hm{display:none}}
+
+/* ══════════════════════════════════════════════════════════════
+   PRINT — Relatório de Validade
+   Esconde tudo exceto #print-area quando Ctrl+P é acionado
+══════════════════════════════════════════════════════════════ */
+@media print {
+  body * { visibility: hidden !important; }
+  #print-area, #print-area * { visibility: visible !important; }
+  #print-area {
+    position: absolute !important;
+    top: 0; left: 0;
+    width: 100%;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 2rem !important;
+  }
+  .print-header { margin-bottom: 1.5rem; border-bottom: 2px solid #7c3aed; padding-bottom: 1rem; }
+  .print-header h1 { font-size: 1.4rem; font-weight: 900; color: #7c3aed; }
+  .print-header p  { font-size: .8rem; color: #64748b; }
+  .print-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .print-table th { background: #f1f5f9; color: #334155; padding: .5rem .75rem; text-align: left; font-size: .7rem; text-transform: uppercase; border: 1px solid #e2e8f0; }
+  .print-table td { padding: .5rem .75rem; border: 1px solid #e2e8f0; color: #1e293b; }
+  .print-table tr.row-venc td { background: #fef2f2; }
+  .print-table tr.row-prox td { background: #fff7ed; }
+  .print-table tr.row-ok   td { background: #f0fdf4; }
+  .print-badge { padding: .15rem .5rem; border-radius: 4px; font-size: .65rem; font-weight: 700; text-transform: uppercase; }
+  .pb-venc  { background: #fee2e2; color: #dc2626; }
+  .pb-prox  { background: #ffedd5; color: #ea580c; }
+  .pb-ok    { background: #dcfce7; color: #16a34a; }
+  .pb-sem   { background: #f1f5f9; color: #94a3b8; }
+  .print-footer { margin-top: 1.5rem; font-size: .7rem; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: .75rem; }
+  @page { margin: 1.5cm; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     TELA DE LOGIN
+═══════════════════════════════════════════════════ -->
+<div id="login-screen" class="min-h-screen flex items-center justify-center p-6">
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-purple-700/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-700/20 rounded-full blur-3xl"></div>
+  </div>
+  <div class="glass rounded-3xl p-8 max-w-sm w-full shadow-2xl relative fadein">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-purple-600/20 border border-purple-500/30 mb-4 float">
+        <i class="fa-solid fa-store text-3xl text-purple-400"></i>
+      </div>
+      <h1 class="text-2xl font-black uppercase italic tracking-tight">Área Restrita</h1>
+      <p class="text-sm text-gray-400 mt-1">Empório e Tabacaria JR</p>
+    </div>
+    <form id="login-form" onsubmit="doLogin(event)" class="space-y-4">
+      <div>
+        <label class="flabel"><i class="fa-solid fa-users mr-1"></i>Tipo de Acesso</label>
+        <select id="l-tipo" required>
+          <option value="">Selecione</option>
+          <option value="funcionario">👤 Funcionário</option>
+          <option value="gestor">📊 Gestor</option>
+          <option value="admin">🔑 Administrador</option>
+        </select>
+      </div>
+      <div class="relative">
+        <label class="flabel"><i class="fa-solid fa-lock mr-1"></i>Senha</label>
+        <input type="password" id="l-senha" placeholder="Digite a senha" required>
+        <button type="button" onclick="togglePwd()" class="absolute right-3 bottom-3 text-gray-500 hover:text-white transition-colors">
+          <i id="eye-icon" class="fa-solid fa-eye text-sm"></i>
+        </button>
+      </div>
+      <div id="l-err" class="hidden bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation"></i><span>Credenciais incorretas.</span>
+      </div>
+      <button type="submit" class="btn btn-p w-full justify-center py-4 text-sm tracking-widest uppercase">
+        <i class="fa-solid fa-right-to-bracket"></i> Entrar
+      </button>
+    </form>
+    <a href="index.html" class="block text-center text-xs text-gray-500 hover:text-purple-400 mt-5 transition-colors">
+      <i class="fa-solid fa-arrow-left mr-1"></i>Voltar ao Catálogo
+    </a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PAINEL ADMIN
+═══════════════════════════════════════════════════ -->
+<div id="admin-screen" class="hidden">
+
+<header class="glass sticky top-0 z-50 px-5 py-3.5 flex items-center justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-purple-600/30 border border-purple-500/30 flex items-center justify-center">
+      <i class="fa-solid fa-store text-purple-400 text-sm"></i>
+    </div>
+    <div class="hidden sm:block leading-none">
+      <p class="text-xs font-black uppercase italic text-white">Tabacaria JR</p>
+      <p class="text-[10px] text-gray-500">Painel Admin</p>
+    </div>
+  </div>
+
+  <nav class="flex gap-1 overflow-x-auto no-sb">
+    <!-- Dashboard: oculto para funcionário via JS -->
+    <button class="tab-btn active" id="t-dash"    onclick="switchTab('dash')"><i class="fa-solid fa-gauge-high mr-1"></i>Dashboard</button>
+    <button class="tab-btn"        id="t-prod"    onclick="switchTab('prod')"><i class="fa-solid fa-boxes-stacked mr-1"></i>Produtos</button>
+    <!-- Pedidos: oculto para funcionário via JS -->
+    <button class="tab-btn"        id="t-ped"     onclick="switchTab('ped')"><i class="fa-solid fa-receipt mr-1"></i>Pedidos</button>
+    <button class="tab-btn"        id="t-estoque" onclick="switchTab('estoque')"><i class="fa-solid fa-warehouse mr-1"></i>Estoque</button>
+    <!-- Validade: visível para gestor e admin -->
+    <button class="tab-btn"        id="t-validade" onclick="switchTab('validade')"><i class="fa-solid fa-calendar-xmark mr-1"></i>Validade</button>
+  </nav>
+
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <div class="text-right hidden sm:block">
+      <p class="text-xs font-bold text-white" id="role-label">—</p>
+      <p class="text-[10px] text-gray-500">online</p>
+    </div>
+    <button onclick="doLogout()" class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors" title="Sair">
+      <i class="fa-solid fa-right-from-bracket text-sm"></i>
+    </button>
+  </div>
+</header>
+
+<main class="p-5 max-w-6xl mx-auto">
+
+  <!-- ── DASHBOARD ──────────────────────────────────────────── -->
+  <section id="s-dash">
+    <div class="mb-6">
+      <h2 class="text-xl font-black uppercase italic">Dashboard</h2>
+      <p class="text-sm text-gray-500" id="dash-date"></p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
+      <div class="stat-card"><div class="sico bg-purple-500/15"><i class="fa-solid fa-boxes-stacked text-purple-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Produtos</p><p class="text-2xl font-black" id="s-tp">—</p></div></div>
+      <div class="stat-card"><div class="sico bg-blue-500/15"><i class="fa-solid fa-receipt text-blue-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Pedidos</p><p class="text-2xl font-black" id="s-tped">—</p></div></div>
+      <div class="stat-card"><div class="sico bg-yellow-500/15"><i class="fa-solid fa-clock text-yellow-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Pendentes</p><p class="text-2xl font-black text-yellow-400" id="s-pend">—</p></div></div>
+      <div class="stat-card"><div class="sico bg-green-500/15"><i class="fa-solid fa-brazilian-real-sign text-green-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Faturamento</p><p class="text-base font-black text-green-400" id="s-fat">—</p></div></div>
+    </div>
+    <!-- Alertas de validade no dashboard -->
+    <div id="s-valert" class="hidden mb-5">
+      <div class="card p-4 border border-red-500/30 bg-red-500/5">
+        <div class="flex items-center gap-3 mb-3">
+          <i class="fa-solid fa-triangle-exclamation text-red-400 text-lg"></i>
+          <h3 class="text-sm font-bold uppercase tracking-wider text-red-400">Alertas de Validade</h3>
+        </div>
+        <div id="s-valert-list" class="space-y-2"></div>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="card p-5">
+        <h3 class="text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-orange-400"></i>Estoque Baixo</h3>
+        <div id="d-lowstock" class="space-y-2 text-sm text-gray-500">Carregando…</div>
+      </div>
+      <div class="card p-5">
+        <h3 class="text-xs font-bold uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-blue-400"></i>Últimos Pedidos</h3>
+        <div id="d-lastped" class="space-y-2 text-sm text-gray-500">Carregando…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PRODUTOS ───────────────────────────────────────────── -->
+  <section id="s-prod" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div><h2 class="text-xl font-black uppercase italic">Produtos</h2><p class="text-sm text-gray-500"><span id="prod-count">0</span> cadastrados</p></div>
+      <div class="flex gap-2 flex-wrap">
+        <input type="text" id="prod-srch" placeholder="🔍 Buscar…" oninput="filterProd()" class="w-40 text-sm">
+        <select id="prod-cat-filter" onchange="filterProd()" class="w-40 text-sm"><option value="">Todas</option></select>
+        <button class="btn btn-p btn-sm" onclick="openProdModal()"><i class="fa-solid fa-plus"></i> Novo</button>
+      </div>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table><thead><tr>
+          <th>Produto</th><th class="hm">Categoria</th><th>Preço</th><th>Estoque</th><th class="hm">Lote</th><th class="hm">Validade</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="prod-tbody"><tr><td colspan="7" class="text-center text-gray-500 py-10">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PEDIDOS ─────────────────────────────────────────────── -->
+  <section id="s-ped" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div><h2 class="text-xl font-black uppercase italic">Pedidos</h2><p class="text-sm text-gray-500"><span id="ped-count">0</span> no total</p></div>
+      <div class="flex gap-2 flex-wrap">
+        <select id="ped-sfilt" onchange="filterPed()" class="w-36 text-sm">
+          <option value="">Todos</option>
+          <option value="pendente">Pendentes</option>
+          <option value="em andamento">Em Andamento</option>
+          <option value="entregue">Entregues</option>
+          <option value="cancelado">Cancelados</option>
+        </select>
+        <button class="btn btn-p btn-sm" onclick="loadPedidos()"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+      </div>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table><thead><tr>
+          <th>#</th><th>Cliente</th><th class="hm">Região</th><th>Total</th><th>Status</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="ped-tbody"><tr><td colspan="6" class="text-center text-gray-500 py-10">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ESTOQUE ─────────────────────────────────────────────── -->
+  <section id="s-estoque" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div><h2 class="text-xl font-black uppercase italic">Estoque</h2><p class="text-sm text-gray-500">Edite quantidades, lote e validade</p></div>
+      <div class="flex gap-2">
+        <input type="text" id="est-srch" placeholder="🔍 Buscar…" oninput="filterEst()" class="w-40 text-sm">
+        <button class="btn btn-g btn-sm" onclick="saveAllStock()"><i class="fa-solid fa-floppy-disk"></i> Salvar Tudo</button>
+      </div>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table><thead><tr>
+          <th>Produto</th><th class="hm">Cat.</th><th>Status</th><th>Qtd</th><th class="hm">Lote</th><th class="hm">Validade</th>
+        </tr></thead>
+        <tbody id="est-tbody"><tr><td colspan="6" class="text-center text-gray-500 py-10">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── VALIDADE (gestor / admin) ──────────────────────────── -->
+  <section id="s-validade" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div>
+        <h2 class="text-xl font-black uppercase italic">Controle de Validade</h2>
+        <p class="text-sm text-gray-500">Produtos vencidos e próximos do vencimento</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <select id="val-filtro" onchange="filterValidade()" class="w-44 text-sm">
+          <option value="">Todos</option>
+          <option value="vencido">Vencidos</option>
+          <option value="proximo">Próximos (30 dias)</option>
+          <option value="ok">No prazo</option>
+          <option value="sem">Sem validade</option>
+        </select>
+        <button class="btn btn-teal btn-sm" onclick="printValidade()">
+          <i class="fa-solid fa-print"></i> Imprimir PDF
+        </button>
+        <button class="btn btn-p btn-sm" onclick="loadValidade()">
+          <i class="fa-solid fa-rotate"></i> Atualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards de resumo -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div class="stat-card border-red-500/20"><div class="sico bg-red-500/15"><i class="fa-solid fa-ban text-red-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Vencidos</p><p class="text-2xl font-black text-red-400" id="v-venc">—</p></div></div>
+      <div class="stat-card border-orange-500/20"><div class="sico bg-orange-500/15"><i class="fa-solid fa-clock text-orange-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Vencem em 30d</p><p class="text-2xl font-black text-orange-400" id="v-prox">—</p></div></div>
+      <div class="stat-card border-green-500/20"><div class="sico bg-green-500/15"><i class="fa-solid fa-circle-check text-green-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">No prazo</p><p class="text-2xl font-black text-green-400" id="v-ok">—</p></div></div>
+      <div class="stat-card"><div class="sico bg-slate-500/15"><i class="fa-solid fa-circle-minus text-slate-400"></i></div><div><p class="text-[10px] text-gray-500 uppercase font-bold">Sem validade</p><p class="text-2xl font-black text-slate-400" id="v-sem">—</p></div></div>
+    </div>
+
+    <!-- Tabela de validade -->
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table><thead><tr>
+          <th>Produto</th>
+          <th class="hm">Categoria</th>
+          <th>Estoque</th>
+          <th class="hm">Lote</th>
+          <th class="hm">Fabricação</th>
+          <th>Validade</th>
+          <th>Status</th>
+          <th>Dias</th>
+        </tr></thead>
+        <tbody id="val-tbody"><tr><td colspan="8" class="text-center text-gray-500 py-10">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div><!-- /admin-screen -->
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL — PRODUTO
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-prod">
+  <div class="mbox">
+    <button onclick="closeProdModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+    <h3 id="pm-title">Novo Produto</h3>
+    <input type="hidden" id="pm-id">
+    <div class="space-y-3">
+      <div>
+        <label class="flabel">Nome do produto *</label>
+        <input type="text" id="pm-name" placeholder="Ex: ELFBAR 40K KING — Grape Ice">
+      </div>
+      <div class="g3">
+        <div><label class="flabel">Preço (R$) *</label><input type="number" id="pm-price" placeholder="0.00" step="0.01" min="0"></div>
+        <div><label class="flabel">Estoque *</label><input type="number" id="pm-stock" placeholder="0" min="0"></div>
+        <div><label class="flabel">Qtd do Lote</label><input type="number" id="pm-qlote" placeholder="0" min="0"></div>
+      </div>
+      <div>
+        <label class="flabel">Categoria *</label>
+        <input type="text" id="pm-cat" placeholder="Ex: PODS DESCARTAVEIS" list="cat-dl">
+        <datalist id="cat-dl"></datalist>
+      </div>
+      <!-- Lote + Fabricação + Validade -->
+      <div class="g3">
+        <div><label class="flabel">Nº do Lote</label><input type="text" id="pm-lote" placeholder="LOT-2025-001"></div>
+        <div><label class="flabel">Fabricação</label><input type="date" id="pm-fab"></div>
+        <div>
+          <label class="flabel">
+            <i class="fa-solid fa-calendar-xmark text-orange-400 mr-1"></i>Validade
+          </label>
+          <input type="date" id="pm-val">
+        </div>
+      </div>
+      <div>
+        <label class="flabel">URL da Imagem</label>
+        <input type="url" id="pm-img" placeholder="https://…" oninput="previewImg()">
+        <img id="pm-preview" src="" alt="" class="mt-2 rounded-xl h-28 w-full object-cover hidden border border-white/10">
+      </div>
+      <div>
+        <label class="flabel">Descrição</label>
+        <textarea id="pm-desc" rows="2" placeholder="Breve descrição…"></textarea>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button class="btn btn-g flex-1 justify-center" onclick="saveProd()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+      <button class="btn btn-r btn-sm" onclick="closeProdModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p id="pm-err" class="text-red-400 text-xs mt-2 hidden"></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL — PEDIDO
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-ped">
+  <div class="mbox">
+    <button onclick="closeOvPed()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+    <h3>Pedido <span class="text-purple-400" id="pv-num"></span></h3>
+    <div class="g2 mb-4 text-sm">
+      <div class="card p-3"><p class="flabel">Cliente</p><p class="font-bold" id="pv-cli"></p></div>
+      <div class="card p-3"><p class="flabel">Pagamento</p><p class="font-bold" id="pv-pag"></p></div>
+      <div class="card p-3 col-span-2"><p class="flabel">Endereço</p><p class="font-bold" id="pv-end"></p></div>
+    </div>
+    <p class="flabel mb-2">Itens</p>
+    <div id="pv-itens" class="space-y-1.5 mb-4"></div>
+    <div class="card p-4 text-sm space-y-1.5 mb-5">
+      <div class="flex justify-between opacity-60"><span>Subtotal</span><span id="pv-sub"></span></div>
+      <div class="flex justify-between opacity-60"><span>Entrega</span><span id="pv-entr"></span></div>
+      <div class="flex justify-between font-black text-base border-t border-white/10 pt-2">
+        <span>TOTAL</span><span class="text-green-400" id="pv-tot"></span>
+      </div>
+    </div>
+    <p class="flabel mb-2">Atualizar Status</p>
+    <div class="flex gap-2 flex-wrap">
+      <button class="btn btn-y btn-sm" onclick="setPedStatus('em andamento')">Em Andamento</button>
+      <button class="btn btn-g btn-sm" onclick="setPedStatus('entregue')">Entregue ✓</button>
+      <button class="btn btn-r btn-sm" onclick="setPedStatus('cancelado')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ÁREA DE IMPRESSÃO (invisível na tela, usada no print)
+═══════════════════════════════════════════════════ -->
+<div id="print-area" style="display:none">
+  <div class="print-header">
+    <h1>📋 Relatório de Validade — Empório e Tabacaria JR</h1>
+    <p id="print-subtitle"></p>
+  </div>
+  <table class="print-table" id="print-table">
+    <thead><tr>
+      <th>Produto</th><th>Categoria</th><th>Estoque</th><th>Lote</th><th>Fabricação</th><th>Validade</th><th>Status</th><th>Dias</th>
+    </tr></thead>
+    <tbody id="print-tbody"></tbody>
+  </table>
+  <div class="print-footer" id="print-footer"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 left-1/2 z-[999] px-5 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl pointer-events-none"
+  style="transform:translateX(-50%) translateY(2rem);opacity:0;transition:opacity .3s,transform .3s"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════ -->
+<script>
+const API    = '/api';
+const SENHAS = { funcionario:'jr2025', gestor:'gestor2025', admin:'jr@admin2025' };
+const syncChannel = new BroadcastChannel('jr_sync');
+
+// ── ESTADO ────────────────────────────────────────────────────
+let role = '';
+let allProd = [];
+let allPed  = [];
+let allValidade = [];
+let curPedId = null;
+
+// ── PERMISSÕES POR ROLE ───────────────────────────────────────
+const TABS_BY_ROLE = {
+  funcionario: ['prod', 'estoque'],
+  gestor:      ['prod', 'ped', 'estoque', 'validade'],
+  admin:       ['dash', 'prod', 'ped', 'estoque', 'validade'],
+};
+
+// ── LOGIN / LOGOUT ────────────────────────────────────────────
+function doLogin(e) {
+  e.preventDefault();
+  const tipo  = document.getElementById('l-tipo').value;
+  const senha = document.getElementById('l-senha').value;
+  const err   = document.getElementById('l-err');
+
+  if (SENHAS[tipo] === senha) {
+    role = tipo;
+    sessionStorage.setItem('jr_auth', 'true');
+    sessionStorage.setItem('jr_role', tipo);
+    err.classList.add('hidden');
+    showAdmin(tipo);
+  } else {
+    err.classList.remove('hidden');
+    const f = document.getElementById('login-form');
+    f.classList.add('shake');
+    setTimeout(() => f.classList.remove('shake'), 300);
+    document.getElementById('l-senha').value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.clear();
+  document.getElementById('admin-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('l-senha').value = '';
+  document.getElementById('l-tipo').value = '';
+}
+
+function togglePwd() {
+  const i = document.getElementById('l-senha');
+  const e = document.getElementById('eye-icon');
+  i.type = i.type === 'password' ? 'text' : 'password';
+  e.className = i.type === 'password' ? 'fa-solid fa-eye text-sm' : 'fa-solid fa-eye-slash text-sm';
+}
+
+function showAdmin(tipo) {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('admin-screen').classList.remove('hidden');
+
+  const rl = { funcionario: '👤 Funcionário', gestor: '📊 Gestor', admin: '🔑 Admin' };
+  document.getElementById('role-label').textContent = rl[tipo] || tipo;
+
+  // Mostrar/ocultar abas conforme role
+  const allowedTabs = TABS_BY_ROLE[tipo] || [];
+  const allTabIds = ['dash', 'prod', 'ped', 'estoque', 'validade'];
+  allTabIds.forEach(t => {
+    const btn = document.getElementById(`t-${t}`);
+    if (btn) btn.style.display = allowedTabs.includes(t) ? '' : 'none';
+  });
+
+  // Aba inicial: primeira permitida
+  const firstTab = allowedTabs[0] || 'prod';
+  // Desativar todos os tabs primeiro
+  allTabIds.forEach(t => {
+    document.getElementById(`t-${t}`)?.classList.remove('active');
+    document.getElementById(`s-${t}`)?.classList.add('hidden');
+  });
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  switchTab(firstTab);
+}
+
+function tryAutoLogin() {
+  if (sessionStorage.getItem('jr_auth') === 'true') {
+    role = sessionStorage.getItem('jr_role') || 'funcionario';
+    showAdmin(role);
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  const all = ['dash', 'prod', 'ped', 'estoque', 'validade'];
+  all.forEach(t => {
+    document.getElementById(`s-${t}`)?.classList.toggle('hidden', t !== tab);
+    document.getElementById(`t-${t}`)?.classList.toggle('active', t === tab);
+  });
+  if (tab === 'dash')     loadDash();
+  if (tab === 'prod')     loadProd();
+  if (tab === 'ped')      loadPedidos();
+  if (tab === 'estoque')  loadEstoque();
+  if (tab === 'validade') loadValidade();
+}
+
+// ── API ───────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const r = await fetch(`${API}${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!r.ok) throw new Error(`${r.status}`);
+  return r.json();
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const el = document.getElementById('toast');
+  const bg = { ok: '#059669', err: '#dc2626', info: '#4f46e5' };
+  el.style.background = bg[type] || bg.ok;
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(-50%) translateY(2rem)'; }, 2500);
+}
+
+// ── HELPERS DE VALIDADE ───────────────────────────────────────
+function validadeStatus(val) {
+  if (!val) return { cls: 'b-semval', label: 'Sem validade', row: '', dias: null, printCls: 'pb-sem', printRow: '' };
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const d    = new Date(val); d.setHours(0,0,0,0);
+  const diff = Math.round((d - hoje) / 86400000);
+  if (diff < 0)   return { cls: 'b-venc',  label: 'Vencido',        row: 'bg-red-500/5',    dias: diff, printCls: 'pb-venc', printRow: 'row-venc' };
+  if (diff <= 30) return { cls: 'b-prox',  label: 'Vence em breve', row: 'bg-orange-500/5', dias: diff, printCls: 'pb-prox', printRow: 'row-prox' };
+  return             { cls: 'b-valid', label: 'No prazo',       row: 'bg-green-500/5',  dias: diff, printCls: 'pb-ok',   printRow: 'row-ok'   };
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('pt-BR');
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+async function loadDash() {
+  try {
+    const s = await api('/stats');
+    document.getElementById('s-tp').textContent   = s.totalProdutos ?? '—';
+    document.getElementById('s-tped').textContent = s.totalPedidos ?? '—';
+    document.getElementById('s-pend').textContent = s.pedidosPendentes ?? '—';
+    document.getElementById('s-fat').textContent  = `R$ ${Number(s.faturamento || 0).toFixed(2)}`;
+  } catch(_) {
+    const ps = JSON.parse(localStorage.getItem('catalogProducts') || '[]');
+    const vs = JSON.parse(localStorage.getItem('vendas') || '[]');
+    document.getElementById('s-tp').textContent   = ps.length;
+    document.getElementById('s-tped').textContent = vs.length;
+    document.getElementById('s-pend').textContent = vs.filter(v => v.status === 'pendente').length;
+    document.getElementById('s-fat').textContent  = `R$ ${vs.reduce((a, v) => a + (v.total || 0), 0).toFixed(2)}`;
+  }
+
+  try {
+    const ps  = await api('/produtos');
+    const low = ps.filter(p => p.stock <= 3);
+    document.getElementById('d-lowstock').innerHTML = low.length
+      ? low.slice(0, 8).map(p => `
+          <div class="flex items-center gap-3 bg-white/3 rounded-xl px-3 py-2">
+            <img src="${p.img}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0" onerror="this.src='https://placehold.co/32x32/1e293b/fff?text=JR'">
+            <span class="flex-1 truncate text-xs">${p.name}</span>
+            <span class="badge ${p.stock === 0 ? 'b-out' : 'b-low'}">${p.stock === 0 ? 'Esgotado' : p.stock + ' un.'}</span>
+          </div>`).join('')
+      : '<p class="text-green-400 text-xs">✓ Estoque OK.</p>';
+
+    // Alertas de validade no dashboard
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const em30 = new Date(); em30.setDate(hoje.getDate() + 30);
+    const alertas = ps.filter(p => p.validade && new Date(p.validade) <= em30);
+    const alertEl = document.getElementById('s-valert');
+    if (alertas.length > 0) {
+      alertEl.classList.remove('hidden');
+      document.getElementById('s-valert-list').innerHTML = alertas.slice(0, 5).map(p => {
+        const vs = validadeStatus(p.validade);
+        return `<div class="flex items-center gap-3 text-xs">
+          <span class="badge ${vs.cls} flex-shrink-0">${vs.label}</span>
+          <span class="flex-1 truncate">${p.name}</span>
+          <span class="text-gray-400">${fmtDate(p.validade)}</span>
+        </div>`;
+      }).join('');
+    } else {
+      alertEl.classList.add('hidden');
+    }
+
+    const peds = await api('/pedidos');
+    renderLastPed(peds.slice(0, 5));
+  } catch(_) {
+    document.getElementById('d-lowstock').innerHTML = '<p class="text-xs text-gray-500">API offline.</p>';
+    renderLastPed(JSON.parse(localStorage.getItem('vendas') || '[]').slice(0, 5));
+  }
+}
+
+function sbadge(s) {
+  const m = { pendente: 'b-pend', 'em andamento': 'b-deli', entregue: 'b-done', cancelado: 'b-canc' };
+  return `<span class="badge ${m[s] || 'b-pend'}">${s}</span>`;
+}
+
+function renderLastPed(items) {
+  document.getElementById('d-lastped').innerHTML = items.length
+    ? items.map(p => `
+        <div class="flex items-center justify-between bg-white/3 rounded-xl px-3 py-2.5 gap-3">
+          <div class="min-w-0"><p class="text-xs font-bold truncate">${p.cliente || '—'}</p><p class="text-[10px] text-gray-500">${p.data ? new Date(p.data).toLocaleDateString('pt-BR') : ''}</p></div>
+          <div class="flex items-center gap-2 flex-shrink-0">${sbadge(p.status || 'pendente')}<span class="text-xs font-black text-green-400">R$ ${Number(p.total || 0).toFixed(2)}</span></div>
+        </div>`).join('')
+    : '<p class="text-xs text-gray-500">Nenhum pedido.</p>';
+}
+
+// ── PRODUTOS ──────────────────────────────────────────────────
+async function loadProd() {
+  try { allProd = await api('/produtos'); }
+  catch(_) { allProd = JSON.parse(localStorage.getItem('catalogProducts') || '[]'); }
+  const cats = [...new Set(allProd.map(p => p.category).filter(Boolean))].sort();
+  const cf = document.getElementById('prod-cat-filter');
+  cf.innerHTML = '<option value="">Todas</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('cat-dl').innerHTML = cats.map(c => `<option value="${c}">`).join('');
+  document.getElementById('prod-count').textContent = allProd.length;
+  renderProd(allProd);
+}
+
+function filterProd() {
+  const q = document.getElementById('prod-srch').value.toLowerCase().trim();
+  const c = document.getElementById('prod-cat-filter').value;
+  let items = allProd;
+  if (q) items = items.filter(p => (p.name || '').toLowerCase().includes(q));
+  if (c) items = items.filter(p => p.category === c);
+  renderProd(items);
+}
+
+function renderProd(items) {
+  const tb = document.getElementById('prod-tbody');
+  if (!items.length) { tb.innerHTML = '<tr><td colspan="7" class="text-center text-gray-500 py-10">Nenhum produto.</td></tr>'; return; }
+  const canEdit = role !== 'funcionario';
+  tb.innerHTML = items.map(p => {
+    const id = p._id || p.id;
+    const sb = p.stock === 0 ? '<span class="badge b-out">Esgotado</span>'
+             : p.stock <= 3  ? `<span class="badge b-low">${p.stock}</span>`
+             :                 `<span class="badge b-ok">${p.stock}</span>`;
+    const vs  = validadeStatus(p.validade);
+    const vbg = p.validade && vs.cls === 'b-venc' ? 'bg-red-500/5' : p.validade && vs.cls === 'b-prox' ? 'bg-orange-500/5' : '';
+    return `<tr class="${vbg}">
+      <td><div class="flex items-center gap-3">
+        <img src="${p.img || ''}" class="w-9 h-9 rounded-lg object-cover flex-shrink-0" onerror="this.src='https://placehold.co/36x36/1e293b/fff?text=JR'">
+        <div><p class="font-bold text-xs">${p.name}</p><p class="text-[10px] text-gray-500">${p.desc ? p.desc.slice(0,40)+'…' : ''}</p></div>
+      </div></td>
+      <td class="hm"><span class="badge b-cat">${p.category || '—'}</span></td>
+      <td class="font-black text-green-400 text-xs">R$ ${Number(p.price || 0).toFixed(2)}</td>
+      <td>${sb}</td>
+      <td class="hm text-[11px] text-gray-400">${p.lote || '—'}</td>
+      <td class="hm"><span class="badge ${vs.cls}">${p.validade ? fmtDate(p.validade) : '—'}</span></td>
+      <td><div class="flex gap-1.5">
+        ${canEdit ? `<button class="btn btn-y btn-sm" onclick="editProd('${id}')"><i class="fa-solid fa-pen"></i></button>` : ''}
+        ${role === 'admin' ? `<button class="btn btn-r btn-sm" onclick="delProd('${id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openProdModal(p = null) {
+  document.getElementById('pm-title').textContent = p ? 'Editar Produto' : 'Novo Produto';
+  document.getElementById('pm-id').value    = p?._id || p?.id || '';
+  document.getElementById('pm-name').value  = p?.name || '';
+  document.getElementById('pm-price').value = p?.price || '';
+  document.getElementById('pm-stock').value = p?.stock ?? '';
+  document.getElementById('pm-qlote').value = p?.quantidade_lote ?? '';
+  document.getElementById('pm-cat').value   = p?.category || '';
+  document.getElementById('pm-lote').value  = p?.lote || '';
+  document.getElementById('pm-img').value   = p?.img || '';
+  document.getElementById('pm-desc').value  = p?.desc || '';
+  document.getElementById('pm-fab').value   = p?.fabricacao ? new Date(p.fabricacao).toISOString().split('T')[0] : '';
+  document.getElementById('pm-val').value   = p?.validade   ? new Date(p.validade).toISOString().split('T')[0]   : '';
+  document.getElementById('pm-err').classList.add('hidden');
+  const prev = document.getElementById('pm-preview');
+  if (p?.img) { prev.src = p.img; prev.classList.remove('hidden'); } else { prev.classList.add('hidden'); }
+  document.getElementById('ov-prod').classList.add('open');
+}
+function closeProdModal() { document.getElementById('ov-prod').classList.remove('open'); }
+function editProd(id)     { openProdModal(allProd.find(p => (p._id || p.id) == id)); }
+function previewImg() {
+  const url = document.getElementById('pm-img').value.trim();
+  const el  = document.getElementById('pm-preview');
+  if (url) { el.src = url; el.classList.remove('hidden'); } else { el.classList.add('hidden'); }
+}
+
+async function saveProd() {
+  const id = document.getElementById('pm-id').value;
+  const payload = {
+    name:            document.getElementById('pm-name').value.trim(),
+    price:           parseFloat(document.getElementById('pm-price').value),
+    stock:           parseInt(document.getElementById('pm-stock').value),
+    quantidade_lote: parseInt(document.getElementById('pm-qlote').value) || 0,
+    category:        document.getElementById('pm-cat').value.trim(),
+    lote:            document.getElementById('pm-lote').value.trim(),
+    fabricacao:      document.getElementById('pm-fab').value || null,
+    validade:        document.getElementById('pm-val').value  || null,
+    img:             document.getElementById('pm-img').value.trim(),
+    desc:            document.getElementById('pm-desc').value.trim(),
+  };
+  const err = document.getElementById('pm-err');
+  if (!payload.name || isNaN(payload.price) || isNaN(payload.stock) || !payload.category) {
+    err.textContent = 'Preencha Nome, Preço, Estoque e Categoria.';
+    err.classList.remove('hidden'); return;
+  }
+  try {
+    if (id) { await api(`/produtos/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); toast('Produto atualizado!'); }
+    else    { await api('/produtos', { method: 'POST', body: JSON.stringify(payload) }); toast('Produto criado!'); }
+    syncChannel.postMessage({ type: 'produtos_changed' });
+    closeProdModal(); loadProd();
+  } catch(e) { err.textContent = `Erro: ${e.message}`; err.classList.remove('hidden'); toast('Erro ao salvar.', 'err'); }
+}
+
+async function delProd(id) {
+  if (!confirm('Deletar este produto?')) return;
+  try { await api(`/produtos/${id}`, { method: 'DELETE' }); toast('Produto deletado.'); syncChannel.postMessage({ type: 'produtos_changed' }); loadProd(); }
+  catch(_) { toast('Erro ao deletar.', 'err'); }
+}
+
+// ── PEDIDOS ───────────────────────────────────────────────────
+async function loadPedidos() {
+  try { allPed = await api('/pedidos'); }
+  catch(_) { allPed = JSON.parse(localStorage.getItem('vendas') || '[]'); }
+  document.getElementById('ped-count').textContent = allPed.length;
+  renderPed(allPed);
+}
+function filterPed() {
+  const s = document.getElementById('ped-sfilt').value;
+  renderPed(s ? allPed.filter(p => p.status === s) : allPed);
+}
+function renderPed(items) {
+  const tb = document.getElementById('ped-tbody');
+  if (!items.length) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-10">Nenhum pedido.</td></tr>'; return; }
+  tb.innerHTML = items.map(p => {
+    const id = p._id || p.id;
+    return `<tr>
+      <td class="font-black text-purple-400">#${p.numero || '—'}</td>
+      <td><p class="font-bold text-xs">${p.cliente || '—'}</p><p class="text-[10px] text-gray-500">${p.data ? new Date(p.data).toLocaleString('pt-BR') : ''}</p></td>
+      <td class="hm text-xs text-gray-400">${p.regiao || '—'}</td>
+      <td class="font-black text-green-400 text-xs">R$ ${Number(p.total || 0).toFixed(2)}</td>
+      <td>${sbadge(p.status || 'pendente')}</td>
+      <td><button class="btn btn-p btn-sm" onclick="openPedModal('${id}')"><i class="fa-solid fa-eye"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+function openPedModal(id) {
+  const p = allPed.find(o => (o._id || o.id) == id); if (!p) return;
+  curPedId = id;
+  document.getElementById('pv-num').textContent  = `#${p.numero || '—'}`;
+  document.getElementById('pv-cli').textContent  = p.cliente || '—';
+  document.getElementById('pv-pag').textContent  = p.pagamento || '—';
+  document.getElementById('pv-end').textContent  = [p.endereco, p.regiao].filter(Boolean).join(' — ') || '—';
+  document.getElementById('pv-sub').textContent  = `R$ ${Number(p.subtotal || 0).toFixed(2)}`;
+  document.getElementById('pv-entr').textContent = `R$ ${Number(p.taxaEntrega || 0).toFixed(2)}`;
+  document.getElementById('pv-tot').textContent  = `R$ ${Number(p.total || 0).toFixed(2)}`;
+  document.getElementById('pv-itens').innerHTML  = (p.itens || []).map(i => `
+    <div class="flex items-center gap-2 bg-white/3 rounded-xl px-3 py-2 text-xs">
+      <span class="font-bold text-purple-400">${i.qty}x</span>
+      <span class="flex-1">${i.name}</span>
+      <span class="font-bold">R$ ${Number((i.price || 0) * (i.qty || 1)).toFixed(2)}</span>
+    </div>
+    ${i.obs ? `<p class="text-[10px] text-gray-400 italic pl-2">Obs: ${i.obs}</p>` : ''}`).join('') || '<p class="text-xs text-gray-500">Sem itens.</p>';
+  document.getElementById('ov-ped').classList.add('open');
+}
+function closeOvPed() { document.getElementById('ov-ped').classList.remove('open'); }
+async function setPedStatus(status) {
+  try { await api(`/pedidos/${curPedId}`, { method: 'PUT', body: JSON.stringify({ status }) }); toast(`Status: ${status}`); }
+  catch(_) {
+    const idx = allPed.findIndex(o => (o._id || o.id) == curPedId);
+    if (idx !== -1) { allPed[idx].status = status; localStorage.setItem('vendas', JSON.stringify(allPed)); }
+    toast('Atualizado localmente.', 'info');
+  }
+  closeOvPed(); loadPedidos();
+}
+
+// ── ESTOQUE ───────────────────────────────────────────────────
+async function loadEstoque() {
+  try { allProd = await api('/produtos'); }
+  catch(_) { allProd = JSON.parse(localStorage.getItem('catalogProducts') || '[]'); }
+  renderEst(allProd);
+}
+function filterEst() {
+  const q = document.getElementById('est-srch').value.toLowerCase().trim();
+  renderEst(q ? allProd.filter(p => (p.name || '').toLowerCase().includes(q)) : allProd);
+}
+function renderEst(items) {
+  const tb = document.getElementById('est-tbody');
+  if (!items.length) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-10">Nenhum produto.</td></tr>'; return; }
+  tb.innerHTML = items.map(p => {
+    const id = p._id || p.id;
+    const sb = p.stock === 0 ? '<span class="badge b-out">Esgotado</span>' : p.stock <= 3 ? '<span class="badge b-low">Baixo</span>' : '<span class="badge b-ok">OK</span>';
+    const vs = validadeStatus(p.validade);
+    return `<tr>
+      <td><div class="flex items-center gap-2">
+        <img src="${p.img || ''}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0" onerror="this.src='https://placehold.co/32x32/1e293b/fff?text=JR'">
+        <span class="text-xs font-bold">${p.name}</span>
+      </div></td>
+      <td class="hm"><span class="badge b-cat text-[10px]">${p.category || '—'}</span></td>
+      <td>${sb}</td>
+      <td><input type="number" min="0" value="${p.stock ?? 0}" class="w-20 text-center text-sm font-bold" data-id="${id}" data-field="stock" onchange="dirtyInput(this)"></td>
+      <td class="hm"><input type="text" value="${p.lote || ''}" placeholder="LOT-…" class="w-32 text-sm" data-id="${id}" data-field="lote" onchange="dirtyInput(this)"></td>
+      <td class="hm">
+        <input type="date" value="${p.validade ? new Date(p.validade).toISOString().split('T')[0] : ''}"
+          class="text-sm ${vs.cls === 'b-venc' ? 'border-red-500/50' : vs.cls === 'b-prox' ? 'border-orange-500/50' : ''}"
+          data-id="${id}" data-field="validade" onchange="dirtyInput(this)">
+      </td>
+    </tr>`;
+  }).join('');
+}
+function dirtyInput(el) { el.style.borderColor = '#f59e0b'; }
+async function saveAllStock() {
+  const inputs = document.querySelectorAll('#est-tbody [data-id]');
+  const byId = {};
+  inputs.forEach(inp => {
+    const id = inp.dataset.id;
+    if (!byId[id]) byId[id] = {};
+    byId[id][inp.dataset.field] = inp.value;
+  });
+  let ok = 0, fail = 0;
+  for (const [id, fields] of Object.entries(byId)) {
+    const prod = allProd.find(p => (p._id || p.id) == id);
+    if (!prod) continue;
+    const payload = { ...prod, stock: parseInt(fields.stock ?? prod.stock), lote: fields.lote ?? prod.lote, validade: fields.validade || null };
+    try { await api(`/produtos/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); prod.stock = payload.stock; prod.lote = payload.lote; prod.validade = payload.validade; ok++; }
+    catch(_) { fail++; }
+  }
+  document.querySelectorAll('#est-tbody [data-id]').forEach(i => i.style.borderColor = '');
+  localStorage.setItem('catalogProducts', JSON.stringify(allProd));
+  if (ok > 0) syncChannel.postMessage({ type: 'produtos_changed' });
+  toast(fail > 0 ? `${ok} salvos, ${fail} só local.` : `${ok} itens atualizados!`, fail > 0 ? 'info' : 'ok');
+}
+
+// ── VALIDADE ──────────────────────────────────────────────────
+async function loadValidade() {
+  try { allValidade = await api('/produtos'); }
+  catch(_) { allValidade = JSON.parse(localStorage.getItem('catalogProducts') || '[]'); }
+
+  // Contar por status
+  let cVenc = 0, cProx = 0, cOk = 0, cSem = 0;
+  allValidade.forEach(p => {
+    const vs = validadeStatus(p.validade);
+    if (!p.validade)               cSem++;
+    else if (vs.cls === 'b-venc')  cVenc++;
+    else if (vs.cls === 'b-prox')  cProx++;
+    else                           cOk++;
+  });
+  document.getElementById('v-venc').textContent = cVenc;
+  document.getElementById('v-prox').textContent = cProx;
+  document.getElementById('v-ok').textContent   = cOk;
+  document.getElementById('v-sem').textContent  = cSem;
+
+  renderValidade(allValidade);
+}
+
+function filterValidade() {
+  const f = document.getElementById('val-filtro').value;
+  if (!f) { renderValidade(allValidade); return; }
+  const filtered = allValidade.filter(p => {
+    const vs = validadeStatus(p.validade);
+    if (f === 'sem')    return !p.validade;
+    if (f === 'vencido') return p.validade && vs.cls === 'b-venc';
+    if (f === 'proximo') return p.validade && vs.cls === 'b-prox';
+    if (f === 'ok')      return p.validade && vs.cls === 'b-valid';
+    return true;
+  });
+  renderValidade(filtered);
+}
+
+function renderValidade(items) {
+  const tb = document.getElementById('val-tbody');
+  if (!items.length) { tb.innerHTML = '<tr><td colspan="8" class="text-center text-gray-500 py-10">Nenhum produto encontrado.</td></tr>'; return; }
+
+  // Ordenar: vencidos → proximos → ok → sem validade
+  const order = { 'b-venc': 0, 'b-prox': 1, 'b-valid': 2, 'b-semval': 3 };
+  const sorted = [...items].sort((a, b) => {
+    const oa = order[validadeStatus(a.validade).cls] ?? 3;
+    const ob = order[validadeStatus(b.validade).cls] ?? 3;
+    return oa - ob;
+  });
+
+  tb.innerHTML = sorted.map(p => {
+    const vs     = validadeStatus(p.validade);
+    const diasTxt = vs.dias === null ? '—'
+                  : vs.dias < 0     ? `${Math.abs(vs.dias)}d vencido`
+                  :                   `${vs.dias}d restantes`;
+    const diasColor = vs.dias === null ? 'text-gray-500'
+                    : vs.dias < 0      ? 'text-red-400 font-black'
+                    : vs.dias <= 30    ? 'text-orange-400 font-bold'
+                    :                    'text-green-400';
+    return `<tr class="${vs.row}">
+      <td><div class="flex items-center gap-3">
+        <img src="${p.img || ''}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0" onerror="this.src='https://placehold.co/32x32/1e293b/fff?text=JR'">
+        <span class="font-bold text-xs">${p.name}</span>
+      </div></td>
+      <td class="hm"><span class="badge b-cat text-[10px]">${p.category || '—'}</span></td>
+      <td class="text-xs">${p.stock ?? 0} un.</td>
+      <td class="hm text-[11px] text-gray-400">${p.lote || '—'}</td>
+      <td class="hm text-[11px] text-gray-400">${fmtDate(p.fabricacao)}</td>
+      <td class="font-bold text-xs">${p.validade ? fmtDate(p.validade) : '—'}</td>
+      <td><span class="badge ${vs.cls}">${vs.label}</span></td>
+      <td class="text-xs ${diasColor}">${diasTxt}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── IMPRESSÃO PDF ─────────────────────────────────────────────
+function printValidade() {
+  // Pegar filtro atual
+  const f = document.getElementById('val-filtro').value;
+  const fLabel = { '': 'Todos os produtos', vencido: 'Produtos Vencidos', proximo: 'Próximos do Vencimento (30 dias)', ok: 'Produtos No Prazo', sem: 'Produtos Sem Validade Cadastrada' };
+
+  let items = allValidade;
+  if (f) {
+    items = allValidade.filter(p => {
+      const vs = validadeStatus(p.validade);
+      if (f === 'sem')     return !p.validade;
+      if (f === 'vencido') return p.validade && vs.cls === 'b-venc';
+      if (f === 'proximo') return p.validade && vs.cls === 'b-prox';
+      if (f === 'ok')      return p.validade && vs.cls === 'b-valid';
+      return true;
+    });
+  }
+
+  // Ordenar igual à tabela
+  const order = { 'b-venc': 0, 'b-prox': 1, 'b-valid': 2, 'b-semval': 3 };
+  items = [...items].sort((a, b) => (order[validadeStatus(a.validade).cls] ?? 3) - (order[validadeStatus(b.validade).cls] ?? 3));
+
+  // Preencher área de impressão
+  const now = new Date().toLocaleString('pt-BR');
+  document.getElementById('print-subtitle').textContent = `Filtro: ${fLabel[f] || 'Todos'} • Gerado em: ${now} • ${items.length} produto(s)`;
+  document.getElementById('print-footer').textContent   = `Empório e Tabacaria JR • Relatório gerado em ${now} • Total: ${items.length} produto(s)`;
+
+  document.getElementById('print-tbody').innerHTML = items.map(p => {
+    const vs = validadeStatus(p.validade);
+    const diasTxt = vs.dias === null ? '—' : vs.dias < 0 ? `${Math.abs(vs.dias)}d vencido` : `${vs.dias}d restantes`;
+    return `<tr class="${vs.printRow}">
+      <td>${p.name}</td>
+      <td>${p.category || '—'}</td>
+      <td>${p.stock ?? 0} un.</td>
+      <td>${p.lote || '—'}</td>
+      <td>${fmtDate(p.fabricacao)}</td>
+      <td>${p.validade ? fmtDate(p.validade) : '—'}</td>
+      <td><span class="print-badge ${vs.printCls}">${vs.label}</span></td>
+      <td>${diasTxt}</td>
+    </tr>`;
+  }).join('');
+
+  // Mostrar área e chamar print
+  const pa = document.getElementById('print-area');
+  pa.style.display = 'block';
+  window.print();
+  pa.style.display = 'none';
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+tryAutoLogin();
+</script>
+</body>
+</html>
