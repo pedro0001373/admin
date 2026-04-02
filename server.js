@@ -184,7 +184,7 @@ app.get("/api/stats", async (req, res) => {
       Pedido.countDocuments(),
       Pedido.countDocuments({ status:"pendente" }),
       Produto.countDocuments({ estoque:0 }),
-      Pedido.aggregate([{ $group:{ _id:null, total:{ $sum:"$total" } } }]),
+      Pedido.aggregate([{ $match:{ status:"entregue" } }, { $group:{ _id:null, total:{ $sum:"$total" } } }]),
       Produto.countDocuments({ validade:{ $lt: hoje } }),
       Produto.countDocuments({ validade:{ $gte: hoje, $lte: em30 } }),
     ]);
