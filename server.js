@@ -12,7 +12,16 @@ app.use(express.static(path.join(__dirname)));
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://peres:12345@ac-pyte4gt-shard-00-00.ygdges0.mongodb.net:27017,ac-pyte4gt-shard-00-01.ygdges0.mongodb.net:27017,ac-pyte4gt-shard-00-02.ygdges0.mongodb.net:27017/?ssl=true&replicaSet=atlas-ob5pqr-shard-0&authSource=admin&appName=tabacariajr";
 
 mongoose.connect(MONGODB_URI)
-  .then(() => console.log("✅  MongoDB conectado"))
+  .then(async () => {
+    console.log("✅  MongoDB conectado");
+    // Garante que todas as categorias dos produtos existam na coleção Categoria
+    const cats = await Produto.distinct("categoria");
+    const validas = cats.filter(Boolean);
+    await Promise.all(validas.map(nome =>
+      Categoria.findOneAndUpdate({ nome }, { nome }, { upsert: true })
+    ));
+    if (validas.length) console.log(`✅  ${validas.length} categoria(s) sincronizadas`);
+  })
   .catch(err => console.error("❌  Erro MongoDB:", err));
 
 // ── MODELOS ───────────────────────────────────────────────────────────────────
