@@ -20,7 +20,7 @@
     {
         "id":  3,
         "name":  "Vinho Rosé Piscine",
-        "category":  "Vinhos rosés",
+        "category":  "Vinhos Rosés",
         "price":  95.00,
         "stock":  0,
         "img":  "https://carrefourbrfood.vtexassets.com/arquivos/ids/29731583/5289432_1.jpg?v=637756141677300000",
@@ -65,7 +65,7 @@
     {
         "id":  8,
         "name":  "Isqueiro Clipper Metal",
-        "category":  "Acessorio",
+        "category":  "Acessório",
         "price":  45.00,
         "stock":  0,
         "img":  "https://images.tcdn.com.br/img/img_prod/723361/isqueiro_clipper_grande_3289_1_20191001225205.jpg",
