@@ -414,7 +414,7 @@ function openProduct(id) {
         <h2 class="text-2xl font-black mb-1 italic text-white">${item.name}</h2>
         <p class="text-xs text-purple-400 font-bold mb-4 uppercase tracking-widest">${item.category} • Disponível: ${item.stock} un.</p>
         <p class="text-gray-400 text-sm mb-6 leading-relaxed">${item.desc || 'Produto premium Tabacaria JR.'}</p>
-        <textarea id="product-obs" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm mb-6 outline-none focus:border-purple-500 text-white" placeholder="Deseja algum sabor especifico ou observação?"></textarea>
+        <textarea id="product-obs" class="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-sm mb-6 outline-none focus:border-purple-500 text-white" placeholder="Deseja algum sabor específico ou observação?"></textarea>
         <div class="flex items-center gap-4">
             <div class="flex items-center bg-white/10 rounded-2xl p-1 text-white">
                 <button onclick="updateQty(-1, ${item.stock})" class="w-10 h-10 font-bold text-xl">-</button>

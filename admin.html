@@ -390,8 +390,14 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
       </div>
       <div>
-        <label class="flabel">URL da Imagem</label>
-        <input type="url" id="pm-img" placeholder="https://…" oninput="previewImg()">
+        <label class="flabel">Imagem</label>
+        <div class="flex gap-2 items-center">
+          <input type="text" id="pm-img" placeholder="Cole uma URL ou clique em Enviar →" oninput="previewImg()" class="flex-1">
+          <label class="btn btn-teal btn-sm cursor-pointer flex-shrink-0" title="Enviar imagem do dispositivo">
+            <i class="fa-solid fa-upload mr-1"></i>Enviar
+            <input type="file" id="pm-img-file" accept="image/*" class="hidden" onchange="handleImgUpload(this)">
+          </label>
+        </div>
         <img id="pm-preview" src="" alt="" class="mt-2 rounded-xl h-28 w-full object-cover hidden border border-white/10">
       </div>
       <div>
@@ -737,12 +743,25 @@ function openProdModal(p = null) {
   if (p?.img) { prev.src = p.img; prev.classList.remove('hidden'); } else { prev.classList.add('hidden'); }
   document.getElementById('ov-prod').classList.add('open');
 }
-function closeProdModal() { document.getElementById('ov-prod').classList.remove('open'); }
+function closeProdModal() { document.getElementById('ov-prod').classList.remove('open'); document.getElementById('pm-img-file').value = ''; }
 function editProd(id)     { openProdModal(allProd.find(p => (p._id || p.id) == id)); }
 function previewImg() {
   const url = document.getElementById('pm-img').value.trim();
   const el  = document.getElementById('pm-preview');
   if (url) { el.src = url; el.classList.remove('hidden'); } else { el.classList.add('hidden'); }
+}
+
+function handleImgUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('pm-img').value = e.target.result;
+    const prev = document.getElementById('pm-preview');
+    prev.src = e.target.result;
+    prev.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
 }
 
 async function saveProd() {
