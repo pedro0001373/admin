@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Empório e Tabacaria JR | Catálogo Premium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -376,7 +379,7 @@ function renderProducts(items) {
         return `
             <div class="product-card relative glass rounded-[2rem] p-3 flex flex-col ${isOut ? 'opacity-40 grayscale pointer-events-none' : 'active:scale-95 cursor-pointer'}" onclick="openProduct('${safeId}')">
                 ${badge}
-                <img src="${item.img}" class="w-full h-36 object-cover rounded-2xl mb-3 shadow-inner" onerror="this.src='https://via.placeholder.com/300x300/1e293b/ffffff?text=JR+TABACARIA'">
+                <img src="${item.img}" loading="lazy" class="w-full h-36 object-cover rounded-2xl mb-3 shadow-inner" onerror="this.src='https://via.placeholder.com/300x300/1e293b/ffffff?text=JR+TABACARIA'">
                 <h3 class="font-bold text-xs mb-1 truncate">${item.name}</h3>
                 <p class="text-[9px] text-purple-400 font-black uppercase tracking-widest mb-2">${item.category}</p>
                 <p class="font-black text-sm text-white">R$ ${item.price.toFixed(2)}</p>
@@ -392,9 +395,13 @@ function filterCategory(cat, btn) {
     applyFilters();
 }
 
+let _searchTimer;
 function handleSearchInput(value) {
-    productSearchTerm = (value || '').toLowerCase().trim();
-    applyFilters();
+    clearTimeout(_searchTimer);
+    _searchTimer = setTimeout(() => {
+        productSearchTerm = (value || '').toLowerCase().trim();
+        applyFilters();
+    }, 200);
 }
 
 function applyFilters() {

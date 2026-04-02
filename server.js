@@ -29,6 +29,10 @@ const ProdutoSchema = new mongoose.Schema({
   validade:        { type: Date,    default: null },   // ← NOVO
 }, { timestamps: true });
 
+ProdutoSchema.index({ categoria: 1 });
+ProdutoSchema.index({ validade: 1 });
+ProdutoSchema.index({ estoque: 1 });
+
 const Produto = mongoose.model("Produto", ProdutoSchema);
 
 const PedidoSchema = new mongoose.Schema({
@@ -43,8 +47,13 @@ const PedidoSchema = new mongoose.Schema({
   total:       { type: Number, default: 0 },
   status:      { type: String, default: "pendente",
                  enum: ["pendente","em andamento","entregue","cancelado"] },
+  observacao:  { type: String, default: "" },
   data:        { type: Date,   default: Date.now },
 }, { timestamps: true });
+
+PedidoSchema.index({ status: 1 });
+PedidoSchema.index({ data: -1 });
+PedidoSchema.index({ numero: -1 });
 
 const Pedido = mongoose.model("Pedido", PedidoSchema);
 
@@ -126,8 +135,9 @@ app.post("/api/pedidos", async (req, res) => {
 
 app.put("/api/pedidos/:id", async (req, res) => {
   try {
-    const doc = await Pedido.findByIdAndUpdate(req.params.id,
-      { status:req.body.status },{ new:true });
+    const update = { status: req.body.status };
+    if (req.body.observacao !== undefined) update.observacao = req.body.observacao;
+    const doc = await Pedido.findByIdAndUpdate(req.params.id, update, { new:true });
     if(!doc) return res.status(404).json({ erro:"Pedido não encontrado" });
     res.json(doc);
   } catch(err){ res.status(400).json({ erro: err.message }); }
@@ -169,7 +179,9 @@ app.get("/api/categorias", async (req, res) => {
     ]);
     const standaloneNomes = standalone.map(c => c.nome);
     const merged = [...new Set([...standaloneNomes, ...fromProds])].sort();
-    const counts = await Promise.all(merged.map(n => Produto.countDocuments({ categoria: n })));
+    const countResult = await Produto.aggregate([{ $group: { _id: "$categoria", count: { $sum: 1 } } }]);
+    const countMap = Object.fromEntries(countResult.map(r => [r._id, r.count]));
+    const counts = merged.map(n => countMap[n] || 0);
     const standaloneMap = Object.fromEntries(standalone.map(c => [c.nome, c._id]));
     res.json(merged.map((nome, i) => ({ _id: standaloneMap[nome] || null, nome, count: counts[i] })));
   } catch(err){ res.status(500).json({ erro: err.message }); }
