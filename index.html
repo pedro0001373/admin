@@ -199,7 +199,6 @@ const CATALOG_STORAGE_KEY = 'catalogProducts';
 const EMBEDDED_CATALOG_DATA_ID = 'catalog-default-data';
 
 let cachedProducts = null;
-let catalogReadyPromise = null;
 
 function cloneProducts(products) {
     return JSON.parse(JSON.stringify(products || []));
@@ -208,71 +207,24 @@ function cloneProducts(products) {
 function getStoredProducts(key) {
     const stored = localStorage.getItem(key);
     if (!stored) return null;
-    try {
-        return JSON.parse(stored);
-    } catch (error) {
-        console.error(`Erro ao ler ${key}:`, error);
-        return null;
-    }
+    try { return JSON.parse(stored); } catch (_) { return null; }
 }
 
 function getEmbeddedDefaultProducts() {
-    const embeddedData = document.getElementById(EMBEDDED_CATALOG_DATA_ID)?.textContent?.trim();
-    if (!embeddedData) return null;
-    try {
-        return JSON.parse(embeddedData);
-    } catch (error) {
-        console.error('Erro ao ler catálogo embutido:', error);
-        return null;
-    }
+    const raw = document.getElementById(EMBEDDED_CATALOG_DATA_ID)?.textContent?.trim();
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (_) { return null; }
 }
 
-// Tenta API (Render) primeiro, depois localStorage, depois embutido
-async function initializeCatalog() {
-    if (catalogReadyPromise) return catalogReadyPromise;
-
-    catalogReadyPromise = (async () => {
-        // 1. Tenta API do Render
-        try {
-            const res = await fetch(`${API_BASE}/api/produtos`);
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    cachedProducts = data;
-                    try {
-                        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(cachedProducts));
-                    } catch (_) {}
-                    return cachedProducts;
-                }
-            }
-        } catch (e) {
-            console.warn('API indisponível — usando fallback local.', e.message);
-        }
-
-        // 2. Tenta localStorage (cache de sessão anterior)
-        const storedProducts = getStoredProducts(CATALOG_STORAGE_KEY);
-        if (storedProducts && storedProducts.length > 0) {
-            cachedProducts = storedProducts;
-            return cachedProducts;
-        }
-
-        // 3. Fallback: catálogo embutido no HTML (offline total)
-        const embedded = getEmbeddedDefaultProducts();
-        if (embedded && embedded.length > 0) {
-            cachedProducts = cloneProducts(embedded);
-            return cachedProducts;
-        }
-
-        throw new Error('Nenhuma fonte de catálogo disponível.');
-    })();
-
+// Inicia o fetch da API IMEDIATAMENTE — antes mesmo do DOM estar pronto.
+// Assim o round-trip ocorre em paralelo com o parsing/rendering da página.
+const _apiFetch = (async () => {
     try {
-        return await catalogReadyPromise;
-    } catch (error) {
-        catalogReadyPromise = null;
-        throw error;
-    }
-}
+        const r = await fetch(`${API_BASE}/api/produtos`);
+        if (r.ok) { const d = await r.json(); if (Array.isArray(d) && d.length) return d; }
+    } catch (_) {}
+    return null;
+})();
 
 function getCatalogProducts() {
     return cachedProducts || [];
@@ -307,21 +259,37 @@ function updateTotalPedidosUI() {
 }
 
 async function bootstrapCatalog() {
-    try {
-        await initializeCatalog();
+    // 1. Renderiza imediatamente: localStorage > embutido — zero delay perceptível
+    const stored   = getStoredProducts(CATALOG_STORAGE_KEY);
+    const embedded = getEmbeddedDefaultProducts();
+    cachedProducts = (stored?.length ? stored : null) ?? (embedded?.length ? cloneProducts(embedded) : []);
+    loadCategories();
+    applyFilters();
+    updateTotalPedidosUI();
+
+    // 2. Atualiza silenciosamente quando a API responder (fetch já estava rolando)
+    const fresh = await _apiFetch;
+    if (fresh?.length && fresh !== cachedProducts) {
+        cachedProducts = fresh;
+        try { localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(fresh)); } catch (_) {}
         loadCategories();
         applyFilters();
-        updateTotalPedidosUI();
-    } catch (error) {
-        console.error('Erro ao inicializar catálogo:', error);
-        renderProducts([]);
     }
 }
 
 async function refreshCatalog() {
-    cachedProducts = null;
-    catalogReadyPromise = null;
-    await bootstrapCatalog();
+    try {
+        const r = await fetch(`${API_BASE}/api/produtos`);
+        if (r.ok) {
+            const d = await r.json();
+            if (Array.isArray(d) && d.length) {
+                cachedProducts = d;
+                try { localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(d)); } catch (_) {}
+                loadCategories();
+                applyFilters();
+            }
+        }
+    } catch (_) {}
 }
 
 if (document.readyState === 'loading') {

@@ -560,6 +560,13 @@ const API_BASE = window.location.hostname.includes('github.io')
   : '';
 const API    = API_BASE + '/api';
 const SENHAS = { funcionario:'jr2025', gestor:'gestor2025', admin:'jr@admin2025' };
+
+// ── CACHE DE API ──────────────────────────────────────────────
+// GETs em memória com TTL de 30 s — troca de aba instantânea,
+// invalida automaticamente após mutações (POST/PUT/DELETE).
+const _apiCache = {};
+const _CACHE_TTL = 30000;
+function _bust(...paths) { paths.forEach(p => delete _apiCache[p]); }
 const syncChannel = new BroadcastChannel('jr_sync');
 
 // ── ESTADO ────────────────────────────────────────────────────
@@ -663,13 +670,20 @@ function switchTab(tab) {
 
 // ── API ───────────────────────────────────────────────────────
 async function api(path, opts = {}) {
+  const isGet = !opts.method || opts.method === 'GET';
+  if (isGet) {
+    const c = _apiCache[path];
+    if (c && Date.now() - c.ts < _CACHE_TTL) return c.data; // hit instantâneo
+  }
   const r = await fetch(`${API}${path}`, { headers: { 'Content-Type': 'application/json' }, ...opts });
   if (!r.ok) {
     let msg = `Erro ${r.status}`;
     try { const body = await r.json(); if (body?.erro) msg = body.erro; } catch(_) {}
     throw new Error(msg);
   }
-  return r.json();
+  const data = await r.json();
+  if (isGet) _apiCache[path] = { data, ts: Date.now() }; // armazena no cache
+  return data;
 }
 
 // ── TOAST ─────────────────────────────────────────────────────
@@ -773,9 +787,9 @@ function renderLastPed(items) {
 
 // ── PRODUTOS ──────────────────────────────────────────────────
 async function loadProd() {
-  try { allProd = await api('/produtos'); }
+  if (allProd.length) renderProd(allProd); // exibe dados em memória imediatamente
+  try { allProd = await api('/produtos'); } // cache hit = instantâneo; miss = rede
   catch(_) {
-    // Preserva produtos já em memória; só cai para localStorage se estiver vazio
     if (!allProd.length) {
       const stored = JSON.parse(localStorage.getItem('catalogProducts') || '[]');
       if (stored.length) allProd = stored;
@@ -892,6 +906,7 @@ async function saveProd() {
   try {
     if (id) { await api(`/produtos/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); toast('Produto atualizado!'); }
     else    { await api('/produtos', { method: 'POST', body: JSON.stringify(payload) }); toast('Produto criado!'); }
+    _bust('/produtos', '/stats', '/categorias');
     syncChannel.postMessage({ type: 'produtos_changed' });
     closeProdModal(); loadProd();
   } catch(e) { err.textContent = `Erro: ${e.message}`; err.classList.remove('hidden'); toast('Erro ao salvar.', 'err'); }
@@ -899,12 +914,13 @@ async function saveProd() {
 
 async function delProd(id) {
   if (!confirm('Deletar este produto?')) return;
-  try { await api(`/produtos/${id}`, { method: 'DELETE' }); toast('Produto deletado.'); syncChannel.postMessage({ type: 'produtos_changed' }); loadProd(); }
+  try { await api(`/produtos/${id}`, { method: 'DELETE' }); _bust('/produtos', '/stats', '/categorias'); toast('Produto deletado.'); syncChannel.postMessage({ type: 'produtos_changed' }); loadProd(); }
   catch(_) { toast('Erro ao deletar.', 'err'); }
 }
 
 // ── PEDIDOS ───────────────────────────────────────────────────
 async function loadPedidos() {
+  if (allPed.length) renderPed(allPed); // exibe dados em memória imediatamente
   try { allPed = await api('/pedidos'); }
   catch(_) { allPed = JSON.parse(localStorage.getItem('vendas') || '[]'); }
   document.getElementById('ped-count').textContent = allPed.length;
@@ -989,6 +1005,7 @@ async function setPedStatus(status, observacao = '') {
     }
     toast('Atualizado localmente.', 'info');
   }
+  _bust('/pedidos', '/stats');
   closeOvPed(); loadPedidos();
 }
 
@@ -1051,7 +1068,7 @@ async function saveAllStock() {
     catch(_) { fail++; }
   }
   document.querySelectorAll('#est-tbody [data-id]').forEach(i => i.style.borderColor = '');
-  if (ok > 0) syncChannel.postMessage({ type: 'produtos_changed' });
+  if (ok > 0) { _bust('/produtos', '/stats'); syncChannel.postMessage({ type: 'produtos_changed' }); }
   toast(fail > 0 ? `${ok} salvos, ${fail} só local.` : `${ok} itens atualizados!`, fail > 0 ? 'info' : 'ok');
 }
 
@@ -1190,8 +1207,9 @@ let allCat = [];
 let delCatNome = '';
 
 async function loadCat() {
+  if (allCat.length) { /* renderiza a seguir */ }
   try { allCat = await api('/categorias'); }
-  catch(_) { allCat = [...new Set(allProd.map(p => p.category).filter(Boolean))].map(n => ({ nome: n, count: 0, _id: null })); }
+  catch(_) { if (!allCat.length) allCat = [...new Set(allProd.map(p => p.category).filter(Boolean))].map(n => ({ nome: n, count: 0, _id: null })); }
   const tb = document.getElementById('cat-tbody');
   if (!allCat.length) {
     tb.innerHTML = '<tr><td colspan="3" class="text-center text-gray-500 py-10">Nenhuma categoria cadastrada.</td></tr>';
@@ -1222,6 +1240,7 @@ async function saveCat() {
   try {
     await api('/categorias', { method: 'POST', body: JSON.stringify({ nome }) });
     toast('Categoria criada!');
+    _bust('/categorias', '/produtos');
     closeCatModal(); loadCat(); loadProd();
     syncChannel.postMessage({ type: 'produtos_changed' });
   } catch(e) { err.textContent = `Erro: ${e.message}`; err.classList.remove('hidden'); toast('Erro ao salvar.', 'err'); }
@@ -1246,6 +1265,7 @@ async function confirmDelCat(acao) {
   try {
     await api(`/categorias/${encodeURIComponent(delCatNome)}?${params}`, { method: 'DELETE' });
     toast(acao === 'deletar' ? 'Categoria e produtos excluídos.' : 'Produtos movidos, categoria excluída.');
+    _bust('/categorias', '/produtos', '/stats');
     closeDelCat(); loadCat(); loadProd();
     syncChannel.postMessage({ type: 'produtos_changed' });
   } catch(_) { toast('Erro ao excluir categoria.', 'err'); }
