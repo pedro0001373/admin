@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname)));
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://peres:12345@ac-pyte4gt-shard-00-00.ygdges0.mongodb.net:27017,ac-pyte4gt-shard-00-01.ygdges0.mongodb.net:27017,ac-pyte4gt-shard-00-02.ygdges0.mongodb.net:27017/?ssl=true&replicaSet=atlas-ob5pqr-shard-0&authSource=admin&appName=tabacariajr";
 
-mongoose.connect(MONGODB_URI)
+mongoose.connect(MONGODB_URI, { maxPoolSize: 5 })
   .then(async () => {
     console.log("✅  MongoDB conectado");
     // Garante que todas as categorias dos produtos existam na coleção Categoria
@@ -93,11 +93,14 @@ app.post("/api/produtos", async (req, res) => {
   try {
     const { name, price, category, stock, img, desc,
             lote, fabricacao, quantidade_lote, validade } = req.body;
+    if (!name?.trim())     return res.status(400).json({ erro: "Nome é obrigatório." });
+    if (price == null || isNaN(Number(price))) return res.status(400).json({ erro: "Preço inválido." });
+    if (!category?.trim()) return res.status(400).json({ erro: "Categoria é obrigatória." });
     const novo = await new Produto({
-      nome: name, preco: price, categoria: category,
-      estoque: stock??0, imagem: img||"", descricao: desc||"",
+      nome: name.trim(), preco: Number(price), categoria: category.trim(),
+      estoque: Number(stock)??0, imagem: img||"", descricao: desc||"",
       lote: lote||"", fabricacao: fabricacao||null,
-      quantidade_lote: quantidade_lote??0,
+      quantidade_lote: Number(quantidade_lote)||0,
       validade: validade||null,
     }).save();
     res.status(201).json(adaptProduto(novo));
@@ -108,11 +111,14 @@ app.put("/api/produtos/:id", async (req, res) => {
   try {
     const { name, price, category, stock, img, desc,
             lote, fabricacao, quantidade_lote, validade } = req.body;
+    if (!name?.trim())     return res.status(400).json({ erro: "Nome é obrigatório." });
+    if (price == null || isNaN(Number(price))) return res.status(400).json({ erro: "Preço inválido." });
+    if (!category?.trim()) return res.status(400).json({ erro: "Categoria é obrigatória." });
     const doc = await Produto.findByIdAndUpdate(req.params.id,
-      { nome:name, preco:price, categoria:category, estoque:stock,
-        imagem:img||"", descricao:desc||"", lote:lote||"",
-        fabricacao:fabricacao||null, quantidade_lote:quantidade_lote??0,
-        validade:validade||null },
+      { nome:name.trim(), preco:Number(price), categoria:category.trim(),
+        estoque:Number(stock)??0, imagem:img||"", descricao:desc||"",
+        lote:lote||"", fabricacao:fabricacao||null,
+        quantidade_lote:Number(quantidade_lote)||0, validade:validade||null },
       { new:true, runValidators:true });
     if(!doc) return res.status(404).json({ erro:"Produto não encontrado" });
     res.json(adaptProduto(doc));
