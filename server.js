@@ -203,13 +203,17 @@ app.get("/api/categorias", async (req, res) => {
       Categoria.find().sort({ nome: 1 }),
       Produto.distinct("categoria"),
     ]);
-    const standaloneNomes = standalone.map(c => c.nome);
-    const merged = [...new Set([...standaloneNomes, ...fromProds])].sort();
+    // Normaliza NFC para evitar duplicatas por diferença de encoding Unicode (ex: é NFD vs NFC)
+    const norm = s => (s || '').normalize('NFC').trim();
+    const standaloneNomes = standalone.map(c => norm(c.nome)).filter(Boolean);
+    const fromProdsNorm   = fromProds.map(norm).filter(Boolean);
+    const merged = [...new Set([...standaloneNomes, ...fromProdsNorm])].sort();
     const countResult = await Produto.aggregate([{ $group: { _id: "$categoria", count: { $sum: 1 } } }]);
-    const countMap = Object.fromEntries(countResult.map(r => [r._id, r.count]));
-    const counts = merged.map(n => countMap[n] || 0);
-    const standaloneMap = Object.fromEntries(standalone.map(c => [c.nome, c._id]));
-    res.json(merged.map((nome, i) => ({ _id: standaloneMap[nome] || null, nome, count: counts[i] })));
+    // Agrupa contagens normalizando a chave
+    const countMap = {};
+    countResult.forEach(r => { const k = norm(r._id); countMap[k] = (countMap[k] || 0) + r.count; });
+    const standaloneMap = Object.fromEntries(standalone.map(c => [norm(c.nome), c._id]));
+    res.json(merged.map(nome => ({ _id: standaloneMap[nome] || null, nome, count: countMap[nome] || 0 })));
   } catch(err){ res.status(500).json({ erro: err.message }); }
 });
 
