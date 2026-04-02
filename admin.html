@@ -485,6 +485,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div id="pv-readonly-msg" class="hidden text-center">
       <p class="text-xs text-gray-500 py-3 bg-white/3 rounded-xl"><i class="fa-solid fa-lock mr-1.5"></i>Visualização apenas — status gerenciado por gestor ou admin</p>
     </div>
+    <!-- Botão excluir pedido — apenas admin -->
+    <div id="pv-del-area" class="hidden mt-4 pt-4" style="border-top:1px solid rgba(255,255,255,.06)">
+      <button class="btn btn-r w-full justify-center" onclick="delPed(curPedId, true)"><i class="fa-solid fa-trash mr-1.5"></i>Excluir Pedido Permanentemente</button>
+    </div>
   </div>
 </div>
 
@@ -941,7 +945,10 @@ function renderPed(items) {
       <td class="hm text-xs text-gray-400">${p.regiao || '—'}</td>
       <td class="font-black text-green-400 text-xs">R$ ${Number(p.total || 0).toFixed(2)}</td>
       <td>${sbadge(p.status || 'pendente')}</td>
-      <td><button class="btn btn-p btn-sm" onclick="openPedModal('${id}')"><i class="fa-solid fa-eye"></i></button></td>
+      <td><div class="flex gap-1.5">
+        <button class="btn btn-p btn-sm" onclick="openPedModal('${id}')"><i class="fa-solid fa-eye"></i></button>
+        ${role === 'admin' ? `<button class="btn btn-r btn-sm" onclick="delPed('${id}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+      </div></td>
     </tr>`;
   }).join('');
 }
@@ -959,6 +966,7 @@ function openPedModal(id) {
   const canEdit = role !== 'funcionario';
   document.getElementById('pv-status-area').style.display = canEdit ? '' : 'none';
   document.getElementById('pv-readonly-msg').classList.toggle('hidden', canEdit);
+  document.getElementById('pv-del-area').classList.toggle('hidden', role !== 'admin');
   hideCancelObs();
   // Observação de cancelamento
   const obsArea = document.getElementById('pv-obs-area');
@@ -978,6 +986,17 @@ function openPedModal(id) {
   document.getElementById('ov-ped').classList.add('open');
 }
 function closeOvPed() { document.getElementById('ov-ped').classList.remove('open'); }
+
+async function delPed(id, fromModal = false) {
+  if (!confirm('Excluir este pedido permanentemente?')) return;
+  try {
+    await api(`/pedidos/${id}`, { method: 'DELETE' });
+    _bust('/pedidos', '/stats');
+    toast('Pedido excluído.');
+    if (fromModal) closeOvPed();
+    loadPedidos();
+  } catch(_) { toast('Erro ao excluir pedido.', 'err'); }
+}
 function showCancelObs() {
   document.getElementById('pv-cancel-area').classList.remove('hidden');
   document.getElementById('pv-cancel-obs').value = '';
