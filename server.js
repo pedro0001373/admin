@@ -38,7 +38,7 @@ const ProdutoSchema = new mongoose.Schema({
   validade:        { type: Date,    default: null },   // ← NOVO
 }, { timestamps: true });
 
-ProdutoSchema.index({ categoria: 1 });
+ProdutoSchema.index({ categoria: 1, nome: 1 }); // índice composto para sort sem exceder memória
 ProdutoSchema.index({ validade: 1 });
 ProdutoSchema.index({ estoque: 1 });
 
@@ -85,8 +85,19 @@ function adaptProduto(p) {
 
 // ── PRODUTOS ──────────────────────────────────────────────────────────────────
 app.get("/api/produtos", async (req, res) => {
-  try { res.json((await Produto.find().sort({ categoria:1, nome:1 })).map(adaptProduto)); }
-  catch(err){ res.status(500).json({ erro: err.message }); }
+  try {
+    // .lean() retorna objetos JS simples (menos overhead) — o índice composto { categoria,nome }
+    // garante que o sort não precise de buffer em memória no Atlas M0
+    const prods = await Produto.find().sort({ categoria:1, nome:1 }).lean();
+    res.json(prods.map(adaptProduto));
+  } catch(err) {
+    // Fallback: busca sem sort e ordena em Node.js (evita erro de memória no Atlas free tier)
+    try {
+      const prods = await Produto.find().lean();
+      prods.sort((a,b) => (a.categoria||'').localeCompare(b.categoria) || (a.nome||'').localeCompare(b.nome));
+      res.json(prods.map(adaptProduto));
+    } catch(err2) { res.status(500).json({ erro: err2.message }); }
+  }
 });
 
 app.post("/api/produtos", async (req, res) => {
@@ -98,7 +109,7 @@ app.post("/api/produtos", async (req, res) => {
     if (!category?.trim()) return res.status(400).json({ erro: "Categoria é obrigatória." });
     const novo = await new Produto({
       nome: name.trim(), preco: Number(price), categoria: category.trim(),
-      estoque: Number(stock)??0, imagem: img||"", descricao: desc||"",
+      estoque: isNaN(Number(stock)) ? 0 : Number(stock), imagem: img||"", descricao: desc||"",
       lote: lote||"", fabricacao: fabricacao||null,
       quantidade_lote: Number(quantidade_lote)||0,
       validade: validade||null,
@@ -116,7 +127,7 @@ app.put("/api/produtos/:id", async (req, res) => {
     if (!category?.trim()) return res.status(400).json({ erro: "Categoria é obrigatória." });
     const doc = await Produto.findByIdAndUpdate(req.params.id,
       { nome:name.trim(), preco:Number(price), categoria:category.trim(),
-        estoque:Number(stock)??0, imagem:img||"", descricao:desc||"",
+        estoque: isNaN(Number(stock)) ? 0 : Number(stock), imagem:img||"", descricao:desc||"",
         lote:lote||"", fabricacao:fabricacao||null,
         quantidade_lote:Number(quantidade_lote)||0, validade:validade||null },
       { new:true, runValidators:true });
