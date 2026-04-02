@@ -185,6 +185,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <button class="tab-btn"        id="t-estoque" onclick="switchTab('estoque')"><i class="fa-solid fa-warehouse mr-1"></i>Estoque</button>
     <!-- Validade: visível para gestor e admin -->
     <button class="tab-btn"        id="t-validade" onclick="switchTab('validade')"><i class="fa-solid fa-calendar-xmark mr-1"></i>Validade</button>
+    <button class="tab-btn"        id="t-cat"      onclick="switchTab('cat')"><i class="fa-solid fa-tags mr-1"></i>Categorias</button>
   </nav>
 
   <div class="flex items-center gap-2 flex-shrink-0">
@@ -352,6 +353,26 @@ tr:hover td{background:rgba(255,255,255,.02)}
     </div>
   </section>
 
+  <!-- ── CATEGORIAS (gestor / admin) ──────────────────────── -->
+  <section id="s-cat" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div>
+        <h2 class="text-xl font-black uppercase italic">Categorias</h2>
+        <p class="text-sm text-gray-500">Criar e excluir categorias de produtos</p>
+      </div>
+      <button class="btn btn-p btn-sm" onclick="openCatModal()"><i class="fa-solid fa-plus"></i> Nova Categoria</button>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table><thead><tr>
+          <th>Categoria</th><th>Produtos</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="cat-tbody"><tr><td colspan="3" class="text-center text-gray-500 py-10">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </main>
 </div><!-- /admin-screen -->
 
@@ -460,6 +481,47 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="print-footer" id="print-footer"></div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     MODAL — CATEGORIA
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-cat">
+  <div class="mbox">
+    <button onclick="closeCatModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+    <h3>Nova Categoria</h3>
+    <div class="space-y-3">
+      <div>
+        <label class="flabel">Nome da Categoria *</label>
+        <input type="text" id="cm-nome" placeholder="Ex: Bebidas Alcoólicas">
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button class="btn btn-g flex-1 justify-center" onclick="saveCat()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+      <button class="btn btn-r btn-sm" onclick="closeCatModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p id="cm-err" class="text-red-400 text-xs mt-2 hidden"></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL — EXCLUIR CATEGORIA
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-cat-del">
+  <div class="mbox" style="max-width:420px">
+    <button onclick="closeDelCat()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+    <h3 class="text-red-400"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Excluir Categoria</h3>
+    <p class="text-sm text-gray-300 mb-2">A categoria <strong id="del-cat-nome" class="text-white"></strong> possui <strong id="del-cat-count" class="text-white"></strong> produto(s).</p>
+    <p class="text-sm text-gray-400 mb-5">O que deseja fazer com os produtos desta categoria?</p>
+    <div class="space-y-2">
+      <button class="btn btn-r w-full justify-center" onclick="confirmDelCat('deletar')"><i class="fa-solid fa-trash mr-1"></i>Excluir categoria e todos os produtos</button>
+      <div class="flex gap-2 items-center">
+        <select id="del-cat-destino" class="flex-1 text-sm"></select>
+        <button class="btn btn-y btn-sm flex-shrink-0" onclick="confirmDelCat('mover')"><i class="fa-solid fa-arrow-right mr-1"></i>Mover para esta categoria</button>
+      </div>
+      <button class="btn w-full justify-center" style="background:rgba(255,255,255,.08)" onclick="closeDelCat()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast" class="fixed bottom-6 left-1/2 z-[999] px-5 py-3 rounded-2xl text-sm font-bold text-white shadow-2xl pointer-events-none"
   style="transform:translateX(-50%) translateY(2rem);opacity:0;transition:opacity .3s,transform .3s"></div>
@@ -482,8 +544,8 @@ let curPedId = null;
 // ── PERMISSÕES POR ROLE ───────────────────────────────────────
 const TABS_BY_ROLE = {
   funcionario: ['prod', 'estoque'],
-  gestor:      ['prod', 'ped', 'estoque', 'validade'],
-  admin:       ['dash', 'prod', 'ped', 'estoque', 'validade'],
+  gestor:      ['prod', 'ped', 'estoque', 'validade', 'cat'],
+  admin:       ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat'],
 };
 
 // ── LOGIN / LOGOUT ────────────────────────────────────────────
@@ -532,7 +594,7 @@ function showAdmin(tipo) {
 
   // Mostrar/ocultar abas conforme role
   const allowedTabs = TABS_BY_ROLE[tipo] || [];
-  const allTabIds = ['dash', 'prod', 'ped', 'estoque', 'validade'];
+  const allTabIds = ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat'];
   allTabIds.forEach(t => {
     const btn = document.getElementById(`t-${t}`);
     if (btn) btn.style.display = allowedTabs.includes(t) ? '' : 'none';
@@ -558,7 +620,7 @@ function tryAutoLogin() {
 
 // ── TABS ──────────────────────────────────────────────────────
 function switchTab(tab) {
-  const all = ['dash', 'prod', 'ped', 'estoque', 'validade'];
+  const all = ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat'];
   all.forEach(t => {
     document.getElementById(`s-${t}`)?.classList.toggle('hidden', t !== tab);
     document.getElementById(`t-${t}`)?.classList.toggle('active', t === tab);
@@ -568,6 +630,7 @@ function switchTab(tab) {
   if (tab === 'ped')      loadPedidos();
   if (tab === 'estoque')  loadEstoque();
   if (tab === 'validade') loadValidade();
+  if (tab === 'cat')      loadCat();
 }
 
 // ── API ───────────────────────────────────────────────────────
@@ -1030,6 +1093,72 @@ function printValidade() {
   pa.style.display = 'block';
   window.print();
   pa.style.display = 'none';
+}
+
+// ── CATEGORIAS ───────────────────────────────────────────────
+let allCat = [];
+let delCatNome = '';
+
+async function loadCat() {
+  try { allCat = await api('/categorias'); }
+  catch(_) { allCat = [...new Set(allProd.map(p => p.category).filter(Boolean))].map(n => ({ nome: n, count: 0, _id: null })); }
+  const tb = document.getElementById('cat-tbody');
+  if (!allCat.length) {
+    tb.innerHTML = '<tr><td colspan="3" class="text-center text-gray-500 py-10">Nenhuma categoria cadastrada.</td></tr>';
+    return;
+  }
+  tb.innerHTML = allCat.map(c => `<tr>
+    <td><span class="badge b-cat">${c.nome}</span></td>
+    <td class="text-sm text-gray-400">${c.count} produto(s)</td>
+    <td>
+      <button class="btn btn-r btn-sm" onclick="openDelCat('${c.nome.replace(/'/g,"\\'")}', ${c.count})">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </td>
+  </tr>`).join('');
+}
+
+function openCatModal() {
+  document.getElementById('cm-nome').value = '';
+  document.getElementById('cm-err').classList.add('hidden');
+  document.getElementById('ov-cat').classList.add('open');
+}
+function closeCatModal() { document.getElementById('ov-cat').classList.remove('open'); }
+
+async function saveCat() {
+  const nome = document.getElementById('cm-nome').value.trim();
+  const err  = document.getElementById('cm-err');
+  if (!nome) { err.textContent = 'Digite o nome da categoria.'; err.classList.remove('hidden'); return; }
+  try {
+    await api('/categorias', { method: 'POST', body: JSON.stringify({ nome }) });
+    toast('Categoria criada!');
+    closeCatModal(); loadCat(); loadProd();
+    syncChannel.postMessage({ type: 'produtos_changed' });
+  } catch(e) { err.textContent = `Erro: ${e.message}`; err.classList.remove('hidden'); toast('Erro ao salvar.', 'err'); }
+}
+
+function openDelCat(nome, count) {
+  delCatNome = nome;
+  document.getElementById('del-cat-nome').textContent = nome;
+  document.getElementById('del-cat-count').textContent = count;
+  const outras = allCat.filter(c => c.nome !== nome);
+  document.getElementById('del-cat-destino').innerHTML = outras.length
+    ? outras.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('')
+    : '<option value="">Sem outras categorias</option>';
+  document.getElementById('ov-cat-del').classList.add('open');
+}
+function closeDelCat() { document.getElementById('ov-cat-del').classList.remove('open'); }
+
+async function confirmDelCat(acao) {
+  const destino = document.getElementById('del-cat-destino').value;
+  if (acao === 'mover' && !destino) { toast('Selecione uma categoria de destino.', 'err'); return; }
+  const params = `acao=${acao}${acao === 'mover' ? `&destino=${encodeURIComponent(destino)}` : ''}`;
+  try {
+    await api(`/categorias/${encodeURIComponent(delCatNome)}?${params}`, { method: 'DELETE' });
+    toast(acao === 'deletar' ? 'Categoria e produtos excluídos.' : 'Produtos movidos, categoria excluída.');
+    closeDelCat(); loadCat(); loadProd();
+    syncChannel.postMessage({ type: 'produtos_changed' });
+  } catch(_) { toast('Erro ao excluir categoria.', 'err'); }
 }
 
 // ── INIT ──────────────────────────────────────────────────────

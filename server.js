@@ -48,6 +48,11 @@ const PedidoSchema = new mongoose.Schema({
 
 const Pedido = mongoose.model("Pedido", PedidoSchema);
 
+const CategoriaSchema = new mongoose.Schema({
+  nome: { type: String, required: true, unique: true },
+}, { timestamps: true });
+const Categoria = mongoose.model("Categoria", CategoriaSchema);
+
 // ── HELPER ────────────────────────────────────────────────────────────────────
 function adaptProduto(p) {
   return {
@@ -152,6 +157,46 @@ app.get("/api/stats", async (req, res) => {
       estoqueZero:ez, faturamento:fat[0]?.total??0,
       vencidos:venc, proximosVencer:prox,
     });
+  } catch(err){ res.status(500).json({ erro: err.message }); }
+});
+
+// ── CATEGORIAS ───────────────────────────────────────────────────────────────
+app.get("/api/categorias", async (req, res) => {
+  try {
+    const [standalone, fromProds] = await Promise.all([
+      Categoria.find().sort({ nome: 1 }),
+      Produto.distinct("categoria"),
+    ]);
+    const standaloneNomes = standalone.map(c => c.nome);
+    const merged = [...new Set([...standaloneNomes, ...fromProds])].sort();
+    const counts = await Promise.all(merged.map(n => Produto.countDocuments({ categoria: n })));
+    const standaloneMap = Object.fromEntries(standalone.map(c => [c.nome, c._id]));
+    res.json(merged.map((nome, i) => ({ _id: standaloneMap[nome] || null, nome, count: counts[i] })));
+  } catch(err){ res.status(500).json({ erro: err.message }); }
+});
+
+app.post("/api/categorias", async (req, res) => {
+  try {
+    const { nome } = req.body;
+    if (!nome?.trim()) return res.status(400).json({ erro: "Nome obrigatório." });
+    const nova = await Categoria.findOneAndUpdate(
+      { nome: nome.trim() }, { nome: nome.trim() }, { upsert: true, new: true }
+    );
+    res.status(201).json(nova);
+  } catch(err){ res.status(400).json({ erro: err.message }); }
+});
+
+app.delete("/api/categorias/:nome", async (req, res) => {
+  try {
+    const nome = decodeURIComponent(req.params.nome);
+    const { acao, destino } = req.query;
+    if (acao === "deletar") {
+      await Produto.deleteMany({ categoria: nome });
+    } else if (acao === "mover" && destino) {
+      await Produto.updateMany({ categoria: nome }, { $set: { categoria: destino } });
+    }
+    await Categoria.deleteOne({ nome });
+    res.json({ ok: true });
   } catch(err){ res.status(500).json({ erro: err.message }); }
 });
 
