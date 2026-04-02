@@ -190,8 +190,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-
 // CATÁLOGO DE PRODUTOS
 // ================================
 
+// Aponta para o Render quando acessado pelo GitHub Pages (sem backend)
+const API_BASE = window.location.hostname.includes('github.io')
+    ? 'https://admin-qlcy.onrender.com'
+    : '';
+
 const CATALOG_STORAGE_KEY = 'catalogProducts';
-const CATALOG_DEFAULT_STORAGE_KEY = 'catalogProductsDefault';
 const EMBEDDED_CATALOG_DATA_ID = 'catalog-default-data';
 
 let cachedProducts = null;
@@ -201,31 +205,11 @@ function cloneProducts(products) {
     return JSON.parse(JSON.stringify(products || []));
 }
 
-function getProductSignature(product) {
-    return [
-        product?.name || '',
-        product?.category || '',
-        Number(product?.price || 0).toFixed(2),
-        product?.img || ''
-    ].join('||');
-}
-
-function dedupeProducts(products) {
-    const seen = new Set();
-    return (products || []).filter(product => {
-        const signature = getProductSignature(product);
-        if (seen.has(signature)) return false;
-        seen.add(signature);
-        return true;
-    });
-}
-
-// ✅ BUG CORRIGIDO: era fetch('/api/produtos') — assíncrono e não retornava dados
 function getStoredProducts(key) {
     const stored = localStorage.getItem(key);
     if (!stored) return null;
     try {
-        return dedupeProducts(JSON.parse(stored));
+        return JSON.parse(stored);
     } catch (error) {
         console.error(`Erro ao ler ${key}:`, error);
         return null;
@@ -236,55 +220,45 @@ function getEmbeddedDefaultProducts() {
     const embeddedData = document.getElementById(EMBEDDED_CATALOG_DATA_ID)?.textContent?.trim();
     if (!embeddedData) return null;
     try {
-        return dedupeProducts(JSON.parse(embeddedData));
+        return JSON.parse(embeddedData);
     } catch (error) {
         console.error('Erro ao ler catálogo embutido:', error);
         return null;
     }
 }
 
-// ✅ NOVO: tenta carregar da API primeiro, depois localStorage, depois embutido
+// Tenta API (Render) primeiro, depois localStorage, depois embutido
 async function initializeCatalog() {
     if (catalogReadyPromise) return catalogReadyPromise;
 
     catalogReadyPromise = (async () => {
-        // 1. Tenta API
+        // 1. Tenta API do Render
         try {
-            const res = await fetch('/api/produtos');
+            const res = await fetch(`${API_BASE}/api/produtos`);
             if (res.ok) {
                 const data = await res.json();
                 if (Array.isArray(data) && data.length > 0) {
-                    cachedProducts = dedupeProducts(data);
+                    cachedProducts = data;
                     try {
                         localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(cachedProducts));
-                    } catch (storageErr) {
-                        console.warn('localStorage cheio — catálogo mantido apenas em memória.');
-                    }
+                    } catch (_) {}
                     return cachedProducts;
                 }
             }
         } catch (e) {
-            console.log('API não disponível, usando fallback local.');
+            console.warn('API indisponível — usando fallback local.', e.message);
         }
 
-        // 2. Tenta localStorage
+        // 2. Tenta localStorage (cache de sessão anterior)
         const storedProducts = getStoredProducts(CATALOG_STORAGE_KEY);
         if (storedProducts && storedProducts.length > 0) {
             cachedProducts = storedProducts;
             return cachedProducts;
         }
 
-        // 3. Tenta localStorage de default
-        const defaultStoredProducts = getStoredProducts(CATALOG_DEFAULT_STORAGE_KEY);
-        if (defaultStoredProducts && defaultStoredProducts.length > 0) {
-            cachedProducts = defaultStoredProducts;
-            return cachedProducts;
-        }
-
-        // 4. Usa catálogo embutido no HTML
+        // 3. Fallback: catálogo embutido no HTML (offline total)
         const embedded = getEmbeddedDefaultProducts();
         if (embedded && embedded.length > 0) {
-            localStorage.setItem(CATALOG_DEFAULT_STORAGE_KEY, JSON.stringify(embedded));
             cachedProducts = cloneProducts(embedded);
             return cachedProducts;
         }
@@ -542,7 +516,7 @@ async function sendWhatsApp() {
         status: 'pendente'
     };
     try {
-        await fetch('/api/pedidos', {
+        await fetch(`${API_BASE}/api/pedidos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(pedidoData)
