@@ -105,7 +105,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-
                 <option value="22">Bertioga Centro (R$ 22,00)</option>
                 <option value="18">Rio da Praia / Maitinga / São Rafael (R$ 18,00)</option>
                 <option value="18">Riviera (R$ 18,00)</option>
-                <option value="10">Vista Linda / Indaiatuba (R$ 10,00)</option>
+                <option value="10">Vista Linda / Indaia (R$ 10,00)</option>
                 <option value="40">Guaratuba / Boraceia (R$ 40,00)</option>
             </select>
 
@@ -468,7 +468,7 @@ async function sendWhatsApp() {
     msg += `*Taxa de Entrega:* R$ ${deliveryTax.toFixed(2)}\n`;
     msg += `*TOTAL FINAL: R$ ${totalFinal.toFixed(2)}*`;
 
-    const url = `https://wa.me/5513997902909?text=${encodeURIComponent(msg)}`;
+    const url = `https://wa.me/5513974225811?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
 
     // ✅ NOVO: salvar pedido na API
