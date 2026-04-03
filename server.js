@@ -4,12 +4,20 @@ const mongoose    = require("mongoose");
 const cors        = require("cors");
 const path        = require("path");
 const compression = require("compression");
+const cloudinary  = require("cloudinary").v2;
 
 const app = express();
 app.use(cors());
-app.use(compression()); // gzip — reduz payload de produtos com base64
+app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname)));
+
+// ── CLOUDINARY ───────────────────────────────────────────────────────────────
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD  || "dyjhrnazu",
+  api_key:    process.env.CLOUDINARY_KEY    || "611456872451991",
+  api_secret: process.env.CLOUDINARY_SECRET || "8a7191NhOBNwy5ZwXlzGtrOwkVU",
+});
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://peres:12345@ac-pyte4gt-shard-00-00.ygdges0.mongodb.net:27017,ac-pyte4gt-shard-00-01.ygdges0.mongodb.net:27017,ac-pyte4gt-shard-00-02.ygdges0.mongodb.net:27017/?ssl=true&replicaSet=atlas-ob5pqr-shard-0&authSource=admin&appName=tabacariajr";
 
@@ -74,14 +82,26 @@ const CategoriaSchema = new mongoose.Schema({
 const Categoria = mongoose.model("Categoria", CategoriaSchema);
 
 // ── HELPER ────────────────────────────────────────────────────────────────────
+// Upload para Cloudinary se for base64; retorna URL do Cloudinary ou a mesma string
+async function uploadImg(imgStr) {
+  if (!imgStr || !imgStr.startsWith('data:')) return imgStr || '';
+  try {
+    const result = await cloudinary.uploader.upload(imgStr, {
+      folder: 'tabacaria-jr',
+      transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
+    });
+    return result.secure_url;
+  } catch (err) {
+    console.error('❌ Cloudinary upload:', err.message);
+    return imgStr; // mantém base64 como fallback
+  }
+}
+
 function adaptProduto(p) {
-  // Se a imagem é base64, substitui por URL do endpoint /api/produtos/:id/img
-  let img = p.imagem || '';
-  if (img.startsWith('data:')) img = `/api/produtos/${p._id}/img`;
   return {
     _id: p._id, id: p._id,
     name: p.nome, price: p.preco, category: p.categoria,
-    stock: p.estoque, img, desc: p.descricao,
+    stock: p.estoque, img: p.imagem || '', desc: p.descricao,
     lote: p.lote, fabricacao: p.fabricacao,
     quantidade_lote: p.quantidade_lote,
     validade: p.validade,
@@ -91,44 +111,17 @@ function adaptProduto(p) {
 // ── PRODUTOS ──────────────────────────────────────────────────────────────────
 app.get("/api/produtos", async (req, res) => {
   try {
-    // Exclui campo imagem da listagem (base64 trava a query — 27 prods × ~4MB cada)
     const prods = await Produto.find()
-      .select('-imagem')
       .sort({ categoria:1, nome:1 })
       .lean();
-    // Preenche img com URL do endpoint dedicado para produtos com base64
-    res.json(prods.map(p => {
-      // sem o campo imagem, verificar se existe via flag
-      return { ...adaptProduto({ ...p, imagem: '' }), img: `/api/produtos/${p._id}/img` };
-    }));
+    res.json(prods.map(adaptProduto));
   } catch(err) {
     try {
-      const prods = await Produto.find().select('-imagem').lean();
+      const prods = await Produto.find().lean();
       prods.sort((a,b) => (a.categoria||'').localeCompare(b.categoria) || (a.nome||'').localeCompare(b.nome));
-      res.json(prods.map(p => ({ ...adaptProduto({ ...p, imagem: '' }), img: `/api/produtos/${p._id}/img` })));
+      res.json(prods.map(adaptProduto));
     } catch(err2) { res.status(500).json({ erro: err2.message }); }
   }
-});
-
-// Endpoint dedicado para servir imagens (evita carregar todas de uma vez)
-app.get("/api/produtos/:id/img", async (req, res) => {
-  try {
-    const doc = await Produto.findById(req.params.id).select('imagem').lean();
-    if (!doc || !doc.imagem) return res.redirect('https://placehold.co/400x400/1e293b/fff?text=JR');
-    const img = doc.imagem;
-    if (img.startsWith('data:')) {
-      // base64 → binary response
-      const match = img.match(/^data:(image\/\w+);base64,(.+)$/);
-      if (match) {
-        const buf = Buffer.from(match[2], 'base64');
-        res.set('Content-Type', match[1]);
-        res.set('Cache-Control', 'public, max-age=86400'); // cache 24h
-        return res.send(buf);
-      }
-    }
-    // URL normal → redirect
-    res.redirect(img);
-  } catch(_) { res.redirect('https://placehold.co/400x400/1e293b/fff?text=JR'); }
 });
 
 app.post("/api/produtos", async (req, res) => {
@@ -138,9 +131,10 @@ app.post("/api/produtos", async (req, res) => {
     if (!name?.trim())     return res.status(400).json({ erro: "Nome é obrigatório." });
     if (price == null || isNaN(Number(price))) return res.status(400).json({ erro: "Preço inválido." });
     if (!category?.trim()) return res.status(400).json({ erro: "Categoria é obrigatória." });
+    const imageUrl = await uploadImg(img);
     const novo = await new Produto({
       nome: name.trim(), preco: Number(price), categoria: category.trim(),
-      estoque: isNaN(Number(stock)) ? 0 : Number(stock), imagem: img||"", descricao: desc||"",
+      estoque: isNaN(Number(stock)) ? 0 : Number(stock), imagem: imageUrl, descricao: desc||"",
       lote: lote||"", fabricacao: fabricacao||null,
       quantidade_lote: Number(quantidade_lote)||0,
       validade: validade||null,
@@ -156,9 +150,10 @@ app.put("/api/produtos/:id", async (req, res) => {
     if (!name?.trim())     return res.status(400).json({ erro: "Nome é obrigatório." });
     if (price == null || isNaN(Number(price))) return res.status(400).json({ erro: "Preço inválido." });
     if (!category?.trim()) return res.status(400).json({ erro: "Categoria é obrigatória." });
+    const imageUrl = await uploadImg(img);
     const doc = await Produto.findByIdAndUpdate(req.params.id,
       { nome:name.trim(), preco:Number(price), categoria:category.trim(),
-        estoque: isNaN(Number(stock)) ? 0 : Number(stock), imagem:img||"", descricao:desc||"",
+        estoque: isNaN(Number(stock)) ? 0 : Number(stock), imagem: imageUrl, descricao:desc||"",
         lote:lote||"", fabricacao:fabricacao||null,
         quantidade_lote:Number(quantidade_lote)||0, validade:validade||null },
       { new:true, runValidators:true });
