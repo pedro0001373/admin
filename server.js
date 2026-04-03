@@ -242,10 +242,23 @@ app.delete("/api/categorias/:nome", async (req, res) => {
   } catch(err){ res.status(500).json({ erro: err.message }); }
 });
 
+// ── HEALTH CHECK (mantém o Render acordado) ─────────────────────────────────
+app.get("/api/health", (req, res) => res.json({ status: "ok", uptime: process.uptime() }));
+
 // ── SPA fallback ──────────────────────────────────────────────────────────────
 app.get(/^(?!\/api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀  http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀  http://localhost:${PORT}`);
+  // Auto-ping a cada 14 min para evitar que o Render free tier durma (limite: 15 min)
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+  if (RENDER_URL) {
+    setInterval(() => {
+      fetch(`${RENDER_URL}/api/health`).catch(() => {});
+    }, 14 * 60 * 1000);
+    console.log("⏰  Auto-ping ativo (14 min)");
+  }
+});
