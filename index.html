@@ -375,7 +375,7 @@ function openProduct(id) {
                 <button onclick="updateQty(1, ${item.stock})" class="w-10 h-10 font-bold text-xl">+</button>
             </div>
             <button onclick="addToCart('${safeId}')" class="flex-1 bg-purple-600 font-black py-4 rounded-2xl shadow-lg shadow-purple-500/20 uppercase text-white">
-                Adicionar • R$ <span id="dynamic-price">${item.price.toFixed(2)}</span>
+                Adicionar • R$ <span id="dynamic-price" data-unit="${item.price}">${item.price.toFixed(2)}</span>
             </button>
         </div>
     `;
@@ -386,11 +386,11 @@ function updateQty(val, stock) {
     const el = document.getElementById('product-qty');
     const priceEl = document.getElementById('dynamic-price');
     let current = parseInt(el.innerText);
-    let unitPrice = parseFloat(priceEl.innerText) / current;
     if (val > 0 && current >= stock) return alert(`Limite em estoque: ${stock} un.`);
     if (current + val >= 1) {
         current += val;
         el.innerText = current;
+        const unitPrice = parseFloat(priceEl.dataset.unit);
         priceEl.innerText = (unitPrice * current).toFixed(2);
     }
 }
