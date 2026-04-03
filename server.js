@@ -1,11 +1,13 @@
 require("dotenv").config();
-const express    = require("express");
-const mongoose   = require("mongoose");
-const cors       = require("cors");
-const path       = require("path");
+const express     = require("express");
+const mongoose    = require("mongoose");
+const cors        = require("cors");
+const path        = require("path");
+const compression = require("compression");
 
 const app = express();
 app.use(cors());
+app.use(compression()); // gzip — reduz payload de produtos com base64
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname)));
 
@@ -73,10 +75,13 @@ const Categoria = mongoose.model("Categoria", CategoriaSchema);
 
 // ── HELPER ────────────────────────────────────────────────────────────────────
 function adaptProduto(p) {
+  // Se a imagem é base64, substitui por URL do endpoint /api/produtos/:id/img
+  let img = p.imagem || '';
+  if (img.startsWith('data:')) img = `/api/produtos/${p._id}/img`;
   return {
     _id: p._id, id: p._id,
     name: p.nome, price: p.preco, category: p.categoria,
-    stock: p.estoque, img: p.imagem, desc: p.descricao,
+    stock: p.estoque, img, desc: p.descricao,
     lote: p.lote, fabricacao: p.fabricacao,
     quantidade_lote: p.quantidade_lote,
     validade: p.validade,
@@ -86,18 +91,44 @@ function adaptProduto(p) {
 // ── PRODUTOS ──────────────────────────────────────────────────────────────────
 app.get("/api/produtos", async (req, res) => {
   try {
-    // .lean() retorna objetos JS simples (menos overhead) — o índice composto { categoria,nome }
-    // garante que o sort não precise de buffer em memória no Atlas M0
-    const prods = await Produto.find().sort({ categoria:1, nome:1 }).lean();
-    res.json(prods.map(adaptProduto));
+    // Exclui campo imagem da listagem (base64 trava a query — 27 prods × ~4MB cada)
+    const prods = await Produto.find()
+      .select('-imagem')
+      .sort({ categoria:1, nome:1 })
+      .lean();
+    // Preenche img com URL do endpoint dedicado para produtos com base64
+    res.json(prods.map(p => {
+      // sem o campo imagem, verificar se existe via flag
+      return { ...adaptProduto({ ...p, imagem: '' }), img: `/api/produtos/${p._id}/img` };
+    }));
   } catch(err) {
-    // Fallback: busca sem sort e ordena em Node.js (evita erro de memória no Atlas free tier)
     try {
-      const prods = await Produto.find().lean();
+      const prods = await Produto.find().select('-imagem').lean();
       prods.sort((a,b) => (a.categoria||'').localeCompare(b.categoria) || (a.nome||'').localeCompare(b.nome));
-      res.json(prods.map(adaptProduto));
+      res.json(prods.map(p => ({ ...adaptProduto({ ...p, imagem: '' }), img: `/api/produtos/${p._id}/img` })));
     } catch(err2) { res.status(500).json({ erro: err2.message }); }
   }
+});
+
+// Endpoint dedicado para servir imagens (evita carregar todas de uma vez)
+app.get("/api/produtos/:id/img", async (req, res) => {
+  try {
+    const doc = await Produto.findById(req.params.id).select('imagem').lean();
+    if (!doc || !doc.imagem) return res.redirect('https://placehold.co/400x400/1e293b/fff?text=JR');
+    const img = doc.imagem;
+    if (img.startsWith('data:')) {
+      // base64 → binary response
+      const match = img.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (match) {
+        const buf = Buffer.from(match[2], 'base64');
+        res.set('Content-Type', match[1]);
+        res.set('Cache-Control', 'public, max-age=86400'); // cache 24h
+        return res.send(buf);
+      }
+    }
+    // URL normal → redirect
+    res.redirect(img);
+  } catch(_) { res.redirect('https://placehold.co/400x400/1e293b/fff?text=JR'); }
 });
 
 app.post("/api/produtos", async (req, res) => {
