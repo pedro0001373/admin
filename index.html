@@ -97,16 +97,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-
 
         <div class="space-y-4">
             <input type="text" id="user-name" placeholder="Seu Nome Completo" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white">
+            <input type="tel" id="user-phone" placeholder="Seu WhatsApp (ex: 13 99999-9999)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white">
             <input type="text" id="user-address" placeholder="Endereço (Rua, nº, Bairro)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-purple-500 text-white">
 
             <select id="user-region" onchange="calculateSummary()" class="w-full bg-[#1E293B] border border-white/10 rounded-xl px-4 py-3 outline-none text-white text-sm">
                 <option value="">Selecione a Região de Entrega</option>
-                <option value="0">Retirada no Local (R$ 0,00)</option>
-                <option value="22">Bertioga Centro (R$ 22,00)</option>
-                <option value="18">Rio da Praia / Maitinga / São Rafael (R$ 18,00)</option>
-                <option value="18">Riviera (R$ 18,00)</option>
-                <option value="10">Vista Linda / Indaia (R$ 10,00)</option>
-                <option value="40">Guaratuba / Boraceia (R$ 40,00)</option>
             </select>
 
             <select id="user-payment" class="w-full bg-[#1E293B] border border-white/10 rounded-xl px-4 py-3 outline-none text-white text-sm">
@@ -217,7 +212,6 @@ function getEmbeddedDefaultProducts() {
 }
 
 // Inicia o fetch da API IMEDIATAMENTE — antes mesmo do DOM estar pronto.
-// Assim o round-trip ocorre em paralelo com o parsing/rendering da página.
 const _apiFetch = (async () => {
     try {
         const r = await fetch(`${API_BASE}/api/produtos`);
@@ -225,6 +219,38 @@ const _apiFetch = (async () => {
     } catch (_) {}
     return null;
 })();
+
+// Fetch dos fretes (regiões de entrega) da API
+const _fretesFetch = (async () => {
+    try {
+        const r = await fetch(`${API_BASE}/api/fretes`);
+        if (r.ok) { const d = await r.json(); if (Array.isArray(d)) return d; }
+    } catch (_) {}
+    return null;
+})();
+
+// Fallback de fretes hardcoded (caso a API não responda)
+const _fretesDefault = [
+    { regiao: 'Retirada no Local', preco: 0 },
+    { regiao: 'Bertioga Centro', preco: 22 },
+    { regiao: 'Rio da Praia / Maitinga / São Rafael', preco: 18 },
+    { regiao: 'Riviera', preco: 18 },
+    { regiao: 'Vista Linda / Indaia', preco: 10 },
+    { regiao: 'Guaratuba / Boraceia', preco: 40 },
+];
+
+function loadFreteOptions(fretes) {
+    const sel = document.getElementById('user-region');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Selecione a Região de Entrega</option>';
+    fretes.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f.preco;
+        opt.textContent = `${f.regiao} (R$ ${Number(f.preco).toFixed(2)})`;
+        opt.dataset.nome = f.regiao;
+        sel.appendChild(opt);
+    });
+}
 
 function getCatalogProducts() {
     return cachedProducts || [];
@@ -266,15 +292,17 @@ async function bootstrapCatalog() {
     loadCategories();
     applyFilters();
     updateTotalPedidosUI();
+    loadFreteOptions(_fretesDefault); // fallback imediato
 
-    // 2. Atualiza silenciosamente quando a API responder (fetch já estava rolando)
-    const fresh = await _apiFetch;
+    // 2. Atualiza silenciosamente quando a API responder
+    const [fresh, fretes] = await Promise.all([_apiFetch, _fretesFetch]);
     if (fresh?.length && fresh !== cachedProducts) {
         cachedProducts = fresh;
         try { localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(fresh)); } catch (_) {}
         loadCategories();
         applyFilters();
     }
+    if (fretes?.length) loadFreteOptions(fretes);
 }
 
 async function refreshCatalog() {
@@ -433,19 +461,26 @@ function calculateSummary() {
 
 async function sendWhatsApp() {
     const name = document.getElementById('user-name').value.trim();
+    const phone = document.getElementById('user-phone').value.trim();
     const addr = document.getElementById('user-address').value.trim();
     const pay = document.getElementById('user-payment').value;
     const regionSelect = document.getElementById('user-region');
 
-    if (!name || !addr || regionSelect.value === '') {
-        return alert('Preencha Nome, Endereço e Região de Entrega!');
+    // Validar telefone: mínimo 10 dígitos
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (!name || !phone || !addr || regionSelect.value === '') {
+        return alert('Preencha Nome, WhatsApp, Endereço e Região de Entrega!');
+    }
+    if (phoneDigits.length < 10) {
+        return alert('Digite um número de WhatsApp válido (mínimo 10 dígitos).');
     }
 
     totalPedidos++;
     localStorage.setItem('totalPedidos', totalPedidos.toString());
     updateTotalPedidosUI();
 
-    const regionName = regionSelect.options[regionSelect.selectedIndex].text;
+    const selectedOpt = regionSelect.options[regionSelect.selectedIndex];
+    const regionName = selectedOpt.dataset.nome || selectedOpt.text;
     const deliveryTax = parseFloat(regionSelect.value);
     const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
     const totalFinal = subtotal + deliveryTax;
@@ -453,6 +488,7 @@ async function sendWhatsApp() {
     let msg = `*EMPÓRIO E TABACARIA JR - PEDIDO #${totalPedidos}*\n`;
     msg += `----------------------------\n`;
     msg += `*Cliente:* ${name}\n`;
+    msg += `*WhatsApp:* ${phone}\n`;
     msg += `*Endereço:* ${addr}\n`;
     msg += `*Região:* ${regionName}\n`;
     msg += `*Pagamento:* ${pay}\n`;
@@ -474,6 +510,7 @@ async function sendWhatsApp() {
     // ✅ NOVO: salvar pedido na API
     const pedidoData = {
         cliente: name,
+        telefone: phone,
         endereco: addr,
         regiao: regionName,
         pagamento: pay,

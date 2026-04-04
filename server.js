@@ -57,6 +57,7 @@ const Produto = mongoose.model("Produto", ProdutoSchema);
 const PedidoSchema = new mongoose.Schema({
   numero:      Number,
   cliente:     { type: String, required: true },
+  telefone:    { type: String, default: "" },
   endereco:    { type: String, default: "" },
   regiao:      { type: String, default: "" },
   pagamento:   { type: String, default: "Pix" },
@@ -80,6 +81,13 @@ const CategoriaSchema = new mongoose.Schema({
   nome: { type: String, required: true, unique: true },
 }, { timestamps: true });
 const Categoria = mongoose.model("Categoria", CategoriaSchema);
+
+const FreteSchema = new mongoose.Schema({
+  regiao: { type: String, required: true },
+  preco:  { type: Number, required: true, min: 0 },
+  ordem:  { type: Number, default: 0 },
+}, { timestamps: true });
+const Frete = mongoose.model("Frete", FreteSchema);
 
 // ── HELPER ────────────────────────────────────────────────────────────────────
 // Upload para Cloudinary se for base64; retorna URL do Cloudinary ou a mesma string
@@ -266,6 +274,40 @@ app.delete("/api/categorias/:nome", async (req, res) => {
     await Categoria.deleteOne({ nome });
     res.json({ ok: true });
   } catch(err){ res.status(500).json({ erro: err.message }); }
+});
+
+// ── FRETES ───────────────────────────────────────────────────────────────────
+app.get("/api/fretes", async (req, res) => {
+  try { res.json(await Frete.find().sort({ ordem: 1, regiao: 1 })); }
+  catch(err){ res.status(500).json({ erro: err.message }); }
+});
+
+app.post("/api/fretes", async (req, res) => {
+  try {
+    const { regiao, preco, ordem } = req.body;
+    if (!regiao?.trim()) return res.status(400).json({ erro: "Região é obrigatória." });
+    if (preco == null || isNaN(Number(preco))) return res.status(400).json({ erro: "Preço inválido." });
+    const novo = await new Frete({ regiao: regiao.trim(), preco: Number(preco), ordem: Number(ordem) || 0 }).save();
+    res.status(201).json(novo);
+  } catch(err){ res.status(400).json({ erro: err.message }); }
+});
+
+app.put("/api/fretes/:id", async (req, res) => {
+  try {
+    const { regiao, preco, ordem } = req.body;
+    if (!regiao?.trim()) return res.status(400).json({ erro: "Região é obrigatória." });
+    if (preco == null || isNaN(Number(preco))) return res.status(400).json({ erro: "Preço inválido." });
+    const doc = await Frete.findByIdAndUpdate(req.params.id,
+      { regiao: regiao.trim(), preco: Number(preco), ordem: Number(ordem) || 0 },
+      { new: true, runValidators: true });
+    if (!doc) return res.status(404).json({ erro: "Frete não encontrado" });
+    res.json(doc);
+  } catch(err){ res.status(400).json({ erro: err.message }); }
+});
+
+app.delete("/api/fretes/:id", async (req, res) => {
+  try { await Frete.findByIdAndDelete(req.params.id); res.json({ ok: true }); }
+  catch(err){ res.status(500).json({ erro: err.message }); }
 });
 
 // ── HEALTH CHECK (mantém o Render acordado) ─────────────────────────────────

@@ -189,6 +189,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <!-- Validade: visível para gestor e admin -->
     <button class="tab-btn"        id="t-validade" onclick="switchTab('validade')"><i class="fa-solid fa-calendar-xmark mr-1"></i>Validade</button>
     <button class="tab-btn"        id="t-cat"      onclick="switchTab('cat')"><i class="fa-solid fa-tags mr-1"></i>Categorias</button>
+    <button class="tab-btn"        id="t-frete"    onclick="switchTab('frete')"><i class="fa-solid fa-truck mr-1"></i>Fretes</button>
   </nav>
 
   <div class="flex items-center gap-2 flex-shrink-0">
@@ -376,8 +377,60 @@ tr:hover td{background:rgba(255,255,255,.02)}
     </div>
   </section>
 
+  <!-- ── FRETES (gestor / admin) ────────────────────────────── -->
+  <section id="s-frete" class="hidden">
+    <div class="flex items-center justify-between mb-5 gap-3 flex-wrap">
+      <div>
+        <h2 class="text-xl font-black uppercase italic">Fretes / Regiões</h2>
+        <p class="text-sm text-gray-500">Gerencie as taxas de entrega por região</p>
+      </div>
+      <button class="btn btn-p btn-sm" onclick="openFreteModal()"><i class="fa-solid fa-plus"></i> Nova Região</button>
+    </div>
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table><thead><tr>
+          <th>Ordem</th><th>Região</th><th>Taxa (R$)</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="frete-tbody"><tr><td colspan="4" class="text-center text-gray-500 py-10">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </main>
 </div><!-- /admin-screen -->
+
+<!-- ═══════════════════════════════════════════════════
+     MODAL — FRETE
+═══════════════════════════════════════════════════ -->
+<div class="overlay" id="ov-frete">
+  <div class="mbox" style="max-width:420px">
+    <button onclick="closeFreteModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+    <h3 id="fm-title">Nova Região de Frete</h3>
+    <input type="hidden" id="fm-id">
+    <div class="space-y-3">
+      <div>
+        <label class="flabel">Região / Descrição *</label>
+        <input type="text" id="fm-regiao" placeholder="Ex: Bertioga Centro">
+      </div>
+      <div class="g2">
+        <div>
+          <label class="flabel">Taxa de Entrega (R$) *</label>
+          <input type="number" id="fm-preco" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div>
+          <label class="flabel">Ordem de exibição</label>
+          <input type="number" id="fm-ordem" placeholder="0" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="flex gap-2 mt-5">
+      <button class="btn btn-g flex-1 justify-center" onclick="saveFrete()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+      <button class="btn btn-r btn-sm" onclick="closeFreteModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p id="fm-err" class="text-red-400 text-xs mt-2 hidden"></p>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════
      MODAL — PRODUTO
@@ -446,8 +499,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <h3>Pedido <span class="text-purple-400" id="pv-num"></span></h3>
     <div class="g2 mb-4 text-sm">
       <div class="card p-3"><p class="flabel">Cliente</p><p class="font-bold" id="pv-cli"></p></div>
+      <div class="card p-3"><p class="flabel">WhatsApp</p><p class="font-bold text-green-400" id="pv-fone"></p></div>
       <div class="card p-3"><p class="flabel">Pagamento</p><p class="font-bold" id="pv-pag"></p></div>
-      <div class="card p-3 col-span-2"><p class="flabel">Endereço</p><p class="font-bold" id="pv-end"></p></div>
+      <div class="card p-3"><p class="flabel">Endereço</p><p class="font-bold" id="pv-end"></p></div>
     </div>
     <p class="flabel mb-2">Itens</p>
     <div id="pv-itens" class="space-y-1.5 mb-4"></div>
@@ -583,8 +637,8 @@ let curPedId = null;
 // ── PERMISSÕES POR ROLE ───────────────────────────────────────
 const TABS_BY_ROLE = {
   funcionario: ['prod', 'ped', 'estoque'],
-  gestor:      ['prod', 'ped', 'estoque', 'validade', 'cat'],
-  admin:       ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat'],
+  gestor:      ['prod', 'ped', 'estoque', 'validade', 'cat', 'frete'],
+  admin:       ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat', 'frete'],
 };
 
 // ── LOGIN / LOGOUT ────────────────────────────────────────────
@@ -633,7 +687,7 @@ function showAdmin(tipo) {
 
   // Mostrar/ocultar abas conforme role
   const allowedTabs = TABS_BY_ROLE[tipo] || [];
-  const allTabIds = ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat'];
+  const allTabIds = ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat', 'frete'];
   allTabIds.forEach(t => {
     const btn = document.getElementById(`t-${t}`);
     if (btn) btn.style.display = allowedTabs.includes(t) ? '' : 'none';
@@ -659,7 +713,7 @@ function tryAutoLogin() {
 
 // ── TABS ──────────────────────────────────────────────────────
 function switchTab(tab) {
-  const all = ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat'];
+  const all = ['dash', 'prod', 'ped', 'estoque', 'validade', 'cat', 'frete'];
   all.forEach(t => {
     document.getElementById(`s-${t}`)?.classList.toggle('hidden', t !== tab);
     document.getElementById(`t-${t}`)?.classList.toggle('active', t === tab);
@@ -670,6 +724,7 @@ function switchTab(tab) {
   if (tab === 'estoque')  loadEstoque();
   if (tab === 'validade') loadValidade();
   if (tab === 'cat')      loadCat();
+  if (tab === 'frete')    loadFretes();
 }
 
 // ── API ───────────────────────────────────────────────────────
@@ -957,6 +1012,7 @@ function openPedModal(id) {
   curPedId = id;
   document.getElementById('pv-num').textContent  = `#${p.numero || '—'}`;
   document.getElementById('pv-cli').textContent  = p.cliente || '—';
+  document.getElementById('pv-fone').textContent = p.telefone || '—';
   document.getElementById('pv-pag').textContent  = p.pagamento || '—';
   document.getElementById('pv-end').textContent  = [p.endereco, p.regiao].filter(Boolean).join(' — ') || '—';
   document.getElementById('pv-sub').textContent  = `R$ ${Number(p.subtotal || 0).toFixed(2)}`;
@@ -1288,6 +1344,70 @@ async function confirmDelCat(acao) {
     closeDelCat(); loadCat(); loadProd();
     syncChannel.postMessage({ type: 'produtos_changed' });
   } catch(_) { toast('Erro ao excluir categoria.', 'err'); }
+}
+
+// ── FRETES ──────────────────────────────────────────────────────
+let allFretes = [];
+
+async function loadFretes() {
+  try { allFretes = await api('/fretes'); }
+  catch(_) { allFretes = []; }
+  renderFretes(allFretes);
+}
+
+function renderFretes(items) {
+  const tb = document.getElementById('frete-tbody');
+  if (!items.length) { tb.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-10">Nenhuma região cadastrada.</td></tr>'; return; }
+  tb.innerHTML = items.map(f => {
+    const id = f._id || f.id;
+    return `<tr>
+      <td class="text-center text-gray-400 text-xs">${f.ordem ?? 0}</td>
+      <td><span class="font-bold text-sm">${f.regiao}</span></td>
+      <td class="font-black text-green-400">R$ ${Number(f.preco || 0).toFixed(2)}</td>
+      <td><div class="flex gap-1.5">
+        <button class="btn btn-y btn-sm" onclick="editFrete('${id}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-r btn-sm" onclick="delFrete('${id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openFreteModal(f = null) {
+  document.getElementById('fm-title').textContent = f ? 'Editar Região' : 'Nova Região de Frete';
+  document.getElementById('fm-id').value     = f?._id || f?.id || '';
+  document.getElementById('fm-regiao').value = f?.regiao || '';
+  document.getElementById('fm-preco').value  = f?.preco ?? '';
+  document.getElementById('fm-ordem').value  = f?.ordem ?? 0;
+  document.getElementById('fm-err').classList.add('hidden');
+  document.getElementById('ov-frete').classList.add('open');
+}
+function closeFreteModal() { document.getElementById('ov-frete').classList.remove('open'); }
+function editFrete(id) { openFreteModal(allFretes.find(f => (f._id || f.id) == id)); }
+
+async function saveFrete() {
+  const id = document.getElementById('fm-id').value;
+  const payload = {
+    regiao: document.getElementById('fm-regiao').value.trim(),
+    preco:  parseFloat(document.getElementById('fm-preco').value),
+    ordem:  parseInt(document.getElementById('fm-ordem').value) || 0,
+  };
+  const err = document.getElementById('fm-err');
+  if (!payload.regiao || isNaN(payload.preco)) {
+    err.textContent = 'Preencha Região e Taxa.';
+    err.classList.remove('hidden'); return;
+  }
+  try {
+    if (id) { await api(`/fretes/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); toast('Região atualizada!'); }
+    else    { await api('/fretes', { method: 'POST', body: JSON.stringify(payload) }); toast('Região criada!'); }
+    _bust('/fretes');
+    closeFreteModal(); loadFretes();
+  } catch(e) { err.textContent = `Erro: ${e.message}`; err.classList.remove('hidden'); toast('Erro ao salvar.', 'err'); }
+}
+
+async function delFrete(id) {
+  if (!confirm('Excluir esta região de frete?')) return;
+  try { await api(`/fretes/${id}`, { method: 'DELETE' }); _bust('/fretes'); toast('Região excluída.'); loadFretes(); }
+  catch(_) { toast('Erro ao excluir.', 'err'); }
 }
 
 // ── INIT ──────────────────────────────────────────────────────
