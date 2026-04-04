@@ -41,7 +41,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-
                 </div>
                 <div class="flex items-center gap-2 bg-black/40 backdrop-blur-md w-fit px-3 py-1.5 rounded-full border border-white/10 text-[10px] font-bold uppercase text-purple-300">
                     <i class="fa-solid fa-shopping-bag"></i>
-                    <span>Pedidos: <span id="total-pedidos-header">0</span></span>
+                    <span>Entregues: <span id="total-pedidos-header">0</span></span>
                 </div>
             </div>
         </div>
@@ -88,7 +88,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-
         <div class="flex justify-between items-center mb-8">
             <div>
                 <h2 class="text-2xl font-black italic uppercase text-white">Fechar Pedido</h2>
-                <p class="text-sm text-purple-400 font-bold mt-1">Total de pedidos: <span id="total-pedidos-display">0</span></p>
+                <p class="text-sm text-purple-400 font-bold mt-1">Pedidos entregues: <span id="total-pedidos-display">0</span></p>
             </div>
             <button onclick="closeCheckout()" class="text-3xl text-white">&times;</button>
         </div>
@@ -273,7 +273,7 @@ function loadCategories() {
 }
 
 let cart = [];
-let totalPedidos = parseInt(localStorage.getItem('totalPedidos') || '0', 10);
+let totalPedidos = 0;
 let selectedCategory = 'Todos';
 let productSearchTerm = '';
 
@@ -282,6 +282,17 @@ function updateTotalPedidosUI() {
     const displayHeader = document.getElementById('total-pedidos-header');
     if (displayCheckout) displayCheckout.textContent = totalPedidos;
     if (displayHeader) displayHeader.textContent = totalPedidos;
+}
+
+async function fetchTotalEntregues() {
+    try {
+        const r = await fetch(`${API_BASE}/api/pedidos`);
+        if (r.ok) {
+            const pedidos = await r.json();
+            totalPedidos = pedidos.filter(p => p.status === 'entregue').length;
+            updateTotalPedidosUI();
+        }
+    } catch (_) {}
 }
 
 async function bootstrapCatalog() {
@@ -293,6 +304,7 @@ async function bootstrapCatalog() {
     applyFilters();
     updateTotalPedidosUI();
     loadFreteOptions(_fretesDefault); // fallback imediato
+    fetchTotalEntregues(); // busca total de pedidos entregues da API
 
     // 2. Atualiza silenciosamente quando a API responder
     const [fresh, fretes] = await Promise.all([_apiFetch, _fretesFetch]);
@@ -475,17 +487,41 @@ async function sendWhatsApp() {
         return alert('Digite um número de WhatsApp válido (mínimo 10 dígitos).');
     }
 
-    totalPedidos++;
-    localStorage.setItem('totalPedidos', totalPedidos.toString());
-    updateTotalPedidosUI();
-
     const selectedOpt = regionSelect.options[regionSelect.selectedIndex];
     const regionName = selectedOpt.dataset.nome || selectedOpt.text;
     const deliveryTax = parseFloat(regionSelect.value);
     const subtotal = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
     const totalFinal = subtotal + deliveryTax;
 
-    let msg = `*EMPÓRIO E TABACARIA JR - PEDIDO #${totalPedidos}*\n`;
+    // Salvar pedido na API primeiro para obter o número
+    const pedidoData = {
+        cliente: name,
+        telefone: phone,
+        endereco: addr,
+        regiao: regionName,
+        pagamento: pay,
+        itens: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, obs: i.obs || '', id: i.id || i._id })),
+        subtotal,
+        taxaEntrega: deliveryTax,
+        total: totalFinal,
+        status: 'pendente'
+    };
+    let numeroPedido = '—';
+    try {
+        const resp = await fetch(`${API_BASE}/api/pedidos`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pedidoData)
+        });
+        if (resp.ok) {
+            const pedidoSalvo = await resp.json();
+            numeroPedido = pedidoSalvo.numero || '—';
+        }
+    } catch (e) {
+        console.log('API indisponível — pedido salvo apenas localmente.');
+    }
+
+    let msg = `*EMPÓRIO E TABACARIA JR - PEDIDO #${numeroPedido}*\n`;
     msg += `----------------------------\n`;
     msg += `*Cliente:* ${name}\n`;
     msg += `*WhatsApp:* ${phone}\n`;
@@ -507,33 +543,9 @@ async function sendWhatsApp() {
     const url = `https://wa.me/5513974225811?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
 
-    // ✅ NOVO: salvar pedido na API
-    const pedidoData = {
-        cliente: name,
-        telefone: phone,
-        endereco: addr,
-        regiao: regionName,
-        pagamento: pay,
-        itens: cart.map(i => ({ name: i.name, price: i.price, qty: i.qty, obs: i.obs || '' })),
-        subtotal,
-        taxaEntrega: deliveryTax,
-        total: totalFinal,
-        status: 'pendente'
-    };
-    try {
-        await fetch(`${API_BASE}/api/pedidos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(pedidoData)
-        });
-    } catch (e) {
-        // Offline: salva só no localStorage
-        console.log('API indisponível — pedido salvo apenas localmente.');
-    }
-
     // Salvar pedido no localStorage (fallback)
     const vendas = JSON.parse(localStorage.getItem('vendas') || '[]');
-    vendas.push({ id: totalPedidos, data: new Date().toISOString(), ...pedidoData });
+    vendas.push({ id: numeroPedido, data: new Date().toISOString(), ...pedidoData });
     localStorage.setItem('vendas', JSON.stringify(vendas));
 
     // Atualizar estoque no localStorage
