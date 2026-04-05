@@ -1365,11 +1365,10 @@ async function loadCat() {
         </button>
       </td>
       <td class="text-sm text-gray-400">${c.count} produto(s)</td>
-      <td>
-        <button class="btn btn-r btn-sm" onclick="openDelCat('${safeName}', ${c.count})">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </td>
+      <td><div class="flex gap-1.5">
+        <button class="btn btn-y btn-sm" onclick="editCatNome('${safeName}')"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-r btn-sm" onclick="openDelCat('${safeName}', ${c.count})"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
     </tr>
     <tr id="cat-det-${safeName}" class="hidden">
       <td colspan="3" style="padding:0.4rem 1rem 1rem 2.5rem">
@@ -1387,6 +1386,18 @@ function toggleCatDetail(id) {
   const icoId = id.replace('cat-det-','cat-ico-');
   const ico = document.getElementById(icoId);
   if (ico) ico.style.transform = row.classList.contains('hidden') ? '' : 'rotate(90deg)';
+}
+
+async function editCatNome(nomeAtual) {
+  const novoNome = prompt(`Renomear categoria "${nomeAtual}" para:`, nomeAtual);
+  if (!novoNome || novoNome.trim() === nomeAtual) return;
+  try {
+    await api(`/categorias/${encodeURIComponent(nomeAtual)}`, { method: 'PUT', body: JSON.stringify({ nome: novoNome.trim() }) });
+    toast('Categoria renomeada!');
+    _bust('/categorias', '/produtos', '/stats');
+    loadCat(); loadProd();
+    syncChannel.postMessage({ type: 'produtos_changed' });
+  } catch(e) { toast(`Erro: ${e.message}`, 'err'); }
 }
 
 function openCatModal() {

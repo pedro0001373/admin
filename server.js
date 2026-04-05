@@ -262,6 +262,19 @@ app.post("/api/categorias", async (req, res) => {
   } catch(err){ res.status(400).json({ erro: err.message }); }
 });
 
+app.put("/api/categorias/:nome", async (req, res) => {
+  try {
+    const nomeAtual = decodeURIComponent(req.params.nome);
+    const { nome: novoNome } = req.body;
+    if (!novoNome?.trim()) return res.status(400).json({ erro: "Novo nome é obrigatório." });
+    // Renomeia na coleção Categoria
+    await Categoria.findOneAndUpdate({ nome: nomeAtual }, { nome: novoNome.trim() });
+    // Atualiza todos os produtos que tinham a categoria antiga
+    await Produto.updateMany({ categoria: nomeAtual }, { $set: { categoria: novoNome.trim() } });
+    res.json({ ok: true });
+  } catch(err){ res.status(400).json({ erro: err.message }); }
+});
+
 app.delete("/api/categorias/:nome", async (req, res) => {
   try {
     const nome = decodeURIComponent(req.params.nome);
