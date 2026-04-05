@@ -1285,20 +1285,54 @@ async function loadCat() {
   if (allCat.length) { /* renderiza a seguir */ }
   try { allCat = await api('/categorias'); }
   catch(_) { if (!allCat.length) allCat = [...new Set(allProd.map(p => p.category).filter(Boolean))].map(n => ({ nome: n, count: 0, _id: null })); }
+  // Garante que allProd esteja carregado para listar produtos por categoria
+  if (!allProd.length) { try { allProd = await api('/produtos'); } catch(_){} }
   const tb = document.getElementById('cat-tbody');
   if (!allCat.length) {
     tb.innerHTML = '<tr><td colspan="3" class="text-center text-gray-500 py-10">Nenhuma categoria cadastrada.</td></tr>';
     return;
   }
-  tb.innerHTML = allCat.map(c => `<tr>
-    <td><span class="badge b-cat">${c.nome}</span></td>
-    <td class="text-sm text-gray-400">${c.count} produto(s)</td>
-    <td>
-      <button class="btn btn-r btn-sm" onclick="openDelCat('${c.nome.replace(/'/g,"\\'")}', ${c.count})">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-    </td>
-  </tr>`).join('');
+  tb.innerHTML = allCat.map(c => {
+    const safeName = c.nome.replace(/'/g,"\\'");
+    const prods = allProd.filter(p => p.category === c.nome);
+    const prodsHtml = prods.length
+      ? prods.map(p => `<div class="flex items-center gap-2 bg-white/3 rounded-lg px-3 py-1.5">
+          <img src="${p.img || ''}" class="w-6 h-6 rounded object-cover flex-shrink-0" onerror="this.src='https://placehold.co/24x24/1e293b/fff?text=JR'">
+          <span class="text-xs flex-1 truncate">${p.name}</span>
+          <span class="text-[10px] text-green-400 font-bold">R$ ${Number(p.price||0).toFixed(2)}</span>
+          <span class="text-[10px] text-gray-500">${p.stock ?? 0} un.</span>
+        </div>`).join('')
+      : '<p class="text-xs text-gray-500 italic">Nenhum produto nesta categoria.</p>';
+    return `<tr>
+      <td>
+        <button onclick="toggleCatDetail('cat-det-${safeName}')" class="flex items-center gap-2 cursor-pointer bg-transparent border-none text-left">
+          <i id="cat-ico-${safeName}" class="fa-solid fa-chevron-right text-[10px] text-gray-500 transition-transform duration-200"></i>
+          <span class="badge b-cat">${c.nome}</span>
+        </button>
+      </td>
+      <td class="text-sm text-gray-400">${c.count} produto(s)</td>
+      <td>
+        <button class="btn btn-r btn-sm" onclick="openDelCat('${safeName}', ${c.count})">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+    <tr id="cat-det-${safeName}" class="hidden">
+      <td colspan="3" style="padding:0.4rem 1rem 1rem 2.5rem">
+        <div class="space-y-1 max-h-48 overflow-y-auto no-sb">${prodsHtml}</div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleCatDetail(id) {
+  const row = document.getElementById(id);
+  if (!row) return;
+  row.classList.toggle('hidden');
+  // Rotaciona ícone da seta
+  const icoId = id.replace('cat-det-','cat-ico-');
+  const ico = document.getElementById(icoId);
+  if (ico) ico.style.transform = row.classList.contains('hidden') ? '' : 'rotate(90deg)';
 }
 
 function openCatModal() {
