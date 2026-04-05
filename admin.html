@@ -580,9 +580,36 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <label class="flabel">Nome da Categoria *</label>
         <input type="text" id="cm-nome" placeholder="Ex: Bebidas Alcoólicas">
       </div>
+      <!-- Primeiro produto obrigatório -->
+      <div class="card p-4 space-y-3" style="border:1px dashed rgba(124,58,237,.3);background:rgba(124,58,237,.05)">
+        <p class="text-[11px] font-bold uppercase text-purple-400 flex items-center gap-1.5"><i class="fa-solid fa-box-open"></i> Primeiro Produto (obrigatório)</p>
+        <div>
+          <label class="flabel">Nome do Produto *</label>
+          <input type="text" id="cm-pname" placeholder="Ex: Gin Tanqueray 750ml">
+        </div>
+        <div class="g3">
+          <div><label class="flabel">Preço (R$) *</label><input type="number" id="cm-pprice" placeholder="0.00" step="0.01" min="0"></div>
+          <div><label class="flabel">Estoque *</label><input type="number" id="cm-pstock" placeholder="0" min="0"></div>
+          <div><label class="flabel">Qtd Lote</label><input type="number" id="cm-pqlote" placeholder="0" min="0"></div>
+        </div>
+        <div>
+          <label class="flabel">Imagem</label>
+          <div class="flex gap-2 items-center">
+            <input type="text" id="cm-pimg" placeholder="URL da imagem ou envie →" class="flex-1">
+            <label class="btn btn-teal btn-sm cursor-pointer flex-shrink-0">
+              <i class="fa-solid fa-upload mr-1"></i>Enviar
+              <input type="file" id="cm-pimg-file" accept="image/*" class="hidden" onchange="handleCatImgUpload(this)">
+            </label>
+          </div>
+        </div>
+        <div>
+          <label class="flabel">Descrição</label>
+          <textarea id="cm-pdesc" rows="2" placeholder="Breve descrição do produto…"></textarea>
+        </div>
+      </div>
     </div>
     <div class="flex gap-2 mt-5">
-      <button class="btn btn-g flex-1 justify-center" onclick="saveCat()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+      <button class="btn btn-g flex-1 justify-center" onclick="saveCat()"><i class="fa-solid fa-floppy-disk"></i> Criar Categoria + Produto</button>
       <button class="btn btn-r btn-sm" onclick="closeCatModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <p id="cm-err" class="text-red-400 text-xs mt-2 hidden"></p>
@@ -1364,19 +1391,49 @@ function toggleCatDetail(id) {
 
 function openCatModal() {
   document.getElementById('cm-nome').value = '';
+  document.getElementById('cm-pname').value = '';
+  document.getElementById('cm-pprice').value = '';
+  document.getElementById('cm-pstock').value = '';
+  document.getElementById('cm-pqlote').value = '';
+  document.getElementById('cm-pimg').value = '';
+  document.getElementById('cm-pdesc').value = '';
+  document.getElementById('cm-pimg-file').value = '';
   document.getElementById('cm-err').classList.add('hidden');
   document.getElementById('ov-cat').classList.add('open');
+}
+function handleCatImgUpload(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => { document.getElementById('cm-pimg').value = e.target.result; };
+  reader.readAsDataURL(file);
 }
 function closeCatModal() { document.getElementById('ov-cat').classList.remove('open'); }
 
 async function saveCat() {
-  const nome = document.getElementById('cm-nome').value.trim();
-  const err  = document.getElementById('cm-err');
+  const nome   = document.getElementById('cm-nome').value.trim();
+  const pName  = document.getElementById('cm-pname').value.trim();
+  const pPrice = parseFloat(document.getElementById('cm-pprice').value);
+  const pStock = parseInt(document.getElementById('cm-pstock').value);
+  const pQlote = parseInt(document.getElementById('cm-pqlote').value) || 0;
+  const pImg   = document.getElementById('cm-pimg').value.trim();
+  const pDesc  = document.getElementById('cm-pdesc').value.trim();
+  const err    = document.getElementById('cm-err');
+
   if (!nome) { err.textContent = 'Digite o nome da categoria.'; err.classList.remove('hidden'); return; }
+  if (!pName) { err.textContent = 'Digite o nome do primeiro produto.'; err.classList.remove('hidden'); return; }
+  if (isNaN(pPrice)) { err.textContent = 'Informe o preço do produto.'; err.classList.remove('hidden'); return; }
+  if (isNaN(pStock)) { err.textContent = 'Informe o estoque do produto.'; err.classList.remove('hidden'); return; }
+
   try {
+    // 1. Cria a categoria
     await api('/categorias', { method: 'POST', body: JSON.stringify({ nome }) });
-    toast('Categoria criada!');
-    _bust('/categorias', '/produtos');
+    // 2. Cria o primeiro produto associado
+    await api('/produtos', { method: 'POST', body: JSON.stringify({
+      name: pName, price: pPrice, stock: pStock, category: nome,
+      quantidade_lote: pQlote, img: pImg, desc: pDesc
+    }) });
+    toast('Categoria e produto criados!');
+    _bust('/categorias', '/produtos', '/stats');
     closeCatModal(); loadCat(); loadProd();
     syncChannel.postMessage({ type: 'produtos_changed' });
   } catch(e) { err.textContent = `Erro: ${e.message}`; err.classList.remove('hidden'); toast('Erro ao salvar.', 'err'); }
